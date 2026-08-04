@@ -1,0 +1,27 @@
+PÁGINA DE VENTAS PREMIUM — landing de alta conversión (no una landing básica)
+(Pegar con la app abierta + el sistema en docs/sistema/)
+==============================================================================
+
+Crea (o eleva) la página de ventas de esta app para que CONVIERTA. Primero dame la estructura
+propuesta y el ángulo de copy, espera mi OK, y luego constrúyela completa (código real, no mockup).
+
+LEE PRIMERO: 19-PAGINA-DE-VENTAS (estructura validada ≥11 secciones + copy de respuesta directa),
+16-DIRECCION-DE-ARTE + 29-REFERENCIA-VISUAL (misma identidad visual que la app, no genérica),
+22-LIBRERIAS-Y-CRAFT (animaciones de entrada premium), 02B-ONBOARDING-MONETIZACION (la promesa y el
+pricing) y 20-ASSETS-VISUALES (hero, OG, visuales).
+
+CONSTRUYE con la estructura del archivo 19: hero con promesa clara + CTA, el problema/dolor real,
+la solución (cómo funciona en 3 pasos), beneficios (no features), prueba social, demo/visual del
+producto, pricing con ancla (anual como $/mes), FAQ que derriba objeciones, garantía, y CTA final.
+Copy en el idioma del usuario, específico y sin relleno.
+
+MESSAGE-MATCH (archivo 19): el headline del hero debe ECOAR la promesa exacta del anuncio/email que
+trae al visitante (los creativos del archivo 34). Si corres varios ángulos, idealmente cada uno
+aterriza en un hero que recoge SU promesa — no un hero genérico para todos. Es la fuga de conversión
+más barata de tapar.
+
+REGLAS: una sola promesa central (la de ESTADO.md); CTAs consistentes que llevan al mismo lugar;
+performance (Core Web Vitals — ver 28 si es Next.js); responsive mobile-first; CERO patrones engañosos
+(urgencia falsa, costos ocultos, confirmshaming). Mismo nivel anti-slop que la app: pásala por la
+rúbrica /40 del archivo 07. Verifica tsc + build + dev al cerrar cada capa; mejora lo que exista (no
+reescribas sin avisar); causa raíz, no parches; no la declares "lista" sin levantarla y mirarla; actualiza ESTADO.md.

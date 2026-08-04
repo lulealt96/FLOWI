@@ -1,0 +1,42 @@
+LANZAMIENTO Y RETENCIÓN — vende en picos y no pierdas el dinero que ya entró
+(Pegar con la app lista para lanzar + el sistema en docs/sistema/)
+============================================================================
+
+Prepara el lanzamiento de esta app y los mecanismos para retener el ingreso. Primero dame el plan
+de lanzamiento (las 5 fases + la oferta de fundadores) y espera mi OK; luego ejecuta por capas,
+generando los materiales y, si aplica, el código (dunning, pausa).
+
+LEE PRIMERO: 35-LANZAMIENTO-Y-RETENCION (playbook 5 fases, lista de espera, oferta de fundadores,
+order bump/upsell/downsell, retención y churn, DUNNING, prueba social desde cero), 18-VENTA-HOTMART
+(el estado past_due del webhook y Resend que vamos a usar), 19-PAGINA-DE-VENTAS (oferta y copy),
+02-VALIDACION (estrategia de retención y win-back) y 34-ADQUISICION-Y-TRAFICO (los canales que
+concentra el lanzamiento + afiliados).
+
+DEFINE PRIMERO (anótalo en ESTADO.md): la OFERTA de fundadores (precio + bono + por qué urge, sin
+falsa escasez) y la fecha real de cierre de la ventana.
+
+EJECUTA lo que aplique:
+ • LANZAMIENTO: calendario de las 5 fases + secuencia de emails de WARMING (lista de espera) y de
+   la VENTANA de carrito (apertura → último aviso), lista para Resend (archivo 18) · brief de
+   afiliados para la ventana (encadena con el kit del 34).
+ • AOV/LTV: define el ORDER BUMP (add-on barato en el checkout) y el UPSELL (mensual→anual en la
+   página de gracias) en Hotmart; verifica que el webhook del 18 los procese por event_id.
+ • RETENCIÓN (churn voluntario): flujo de cancelación con encuesta + oferta de PAUSA (estado del
+   perfil que no factura) + rescate por razón + win-back (emails 30/60/90 con Resend). Cancelar
+   debe ser FÁCIL — sin dark patterns.
+ • DUNNING (churn involuntario, la conversión más barata): cadencia de 4 emails (día 1/3/5/7) sobre
+   el estado past_due del webhook (archivo 18) + banner no bloqueante in-app + link a actualizar
+   método en Hotmart. Tono servicial, no acusatorio.
+ • RENOVACIÓN ANUAL (el acantilado del mes 12): si hay plan anual, cadencia PRE-renovación (~30 y ~7
+   días antes del cobro) que recuerda el VALOR del año + la fecha exacta, para que el cobro sea
+   esperado y no una emboscada (archivo 35).
+ • REFERIDOS (member-get-member, archivo 35): convertir clientes felices en afiliados de Hotmart, o
+   recompensa in-app "da y recibe" reconciliada por el webhook del 18; pedirlo en el momento de
+   máxima felicidad y solo si la app ya retiene (curva aplanada, archivo 24).
+ • PRUEBA SOCIAL DESDE CERO si aún no tengo clientes: plan de beta sembrada + caso propio +
+   testimonios reales para la landing del 19. CERO testimonios inventados.
+
+REGLAS: urgencia y escasez REALES (si dije que cierra, cierra) · CERO dark patterns/confirmshaming/
+falsa escasez · el dunning y la pausa NO borran datos en la gracia · verifica tsc + build + dev si
+tocas código · lógica de estado (pausa/past_due) en el servidor con RLS · mejora lo que existe ·
+reporta lo lanzado y deja el playbook + ofertas en ESTADO.md.
