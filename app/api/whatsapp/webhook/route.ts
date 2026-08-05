@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
+import { waitUntil } from '@vercel/functions'
 import { processInboundMessage } from '@/lib/whatsapp/processMessage'
 
 // GET — Meta verifica el webhook al configurarlo
@@ -52,10 +53,12 @@ export async function POST(req: NextRequest) {
 
         if (!body.trim()) continue
 
-        // Procesar en background — respondemos 200 inmediatamente a Meta
-        processInboundMessage(waMessageId, from, body).catch(err => {
-          console.error('[WhatsApp] Error procesando mensaje:', err)
-        })
+        // Procesar en background — waitUntil mantiene la función viva hasta que termine
+        waitUntil(
+          processInboundMessage(waMessageId, from, body).catch(err => {
+            console.error('[WhatsApp] Error procesando mensaje:', err)
+          })
+        )
       }
     }
   }

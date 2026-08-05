@@ -7,17 +7,19 @@ import { useRouter } from 'next/navigation'
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
-// Proyectos sugeridos pre-cargados
+// Plantillas genéricas para cualquier usuario
 const SUGGESTED_PROJECTS = [
-  { name: 'Ticketcode',         emoji: '🎟️', color: '#F06B8A', category: 'work'     as const },
-  { name: 'Café Delverde',      emoji: '☕',  color: '#8B6F47', category: 'work'     as const },
-  { name: 'Scoop Sorpresas',    emoji: '🎁',  color: '#F0A06B', category: 'work'     as const },
-  { name: 'Jardín Infantil',    emoji: '🌸',  color: '#6B8AF0', category: 'life'     as const },
-  { name: 'Salud Lucy',         emoji: '💊',  color: '#6BC96B', category: 'life'     as const },
-  { name: 'Finanzas en pareja', emoji: '💰',  color: '#F0D06B', category: 'personal' as const },
-  { name: 'Hábitos',            emoji: '⚡',  color: '#A06BF0', category: 'personal' as const },
-  { name: 'Fechas importantes', emoji: '📅',  color: '#F06B6B', category: 'personal' as const },
-  { name: 'LIA 🐾',             emoji: '🐕',  color: '#6BF0D0', category: 'life'     as const },
+  { name: 'Mi negocio',          emoji: '🏢', color: '#F06B8A', category: 'work'     as const },
+  { name: 'Trabajo / Empleo',    emoji: '💼', color: '#6B8AF0', category: 'work'     as const },
+  { name: 'Freelance',           emoji: '🚀', color: '#F0A06B', category: 'work'     as const },
+  { name: 'Hogar y familia',     emoji: '🏠', color: '#6BC96B', category: 'life'     as const },
+  { name: 'Salud y bienestar',   emoji: '💚', color: '#6BF0D0', category: 'life'     as const },
+  { name: 'Mascotas',            emoji: '🐾', color: '#A06BF0', category: 'life'     as const },
+  { name: 'Finanzas personales', emoji: '💰', color: '#F0D06B', category: 'personal' as const },
+  { name: 'Hábitos y rutinas',   emoji: '⚡', color: '#F06B6B', category: 'personal' as const },
+  { name: 'Fechas importantes',  emoji: '📅', color: '#8B6F47', category: 'personal' as const },
+  { name: 'Viajes y planes',     emoji: '✈️', color: '#6B8AF0', category: 'personal' as const },
+  { name: 'Estudios',            emoji: '📚', color: '#F06B8A', category: 'personal' as const },
 ]
 
 type Category = 'work' | 'personal' | 'life'
@@ -29,13 +31,46 @@ interface Project {
   category: Category
 }
 
+const CUSTOM_COLORS = ['#F06B8A','#6B8AF0','#F0A06B','#6BC96B','#A06BF0','#F0D06B','#6BF0D0','#F06B6B']
+const QUICK_EMOJIS = ['📌','⭐','🎯','🔥','💡','🌱','🎨','🛠️','📝','🏆','💎','🌍']
+
+const categoryLabel: Record<Category, string> = {
+  work:     'Trabajo',
+  personal: 'Personal',
+  life:     'Vida',
+}
+
 export default function OnboardingPage() {
   const [step, setStep]             = useState(1)
   const [name, setName]             = useState('')
-  const [selected, setSelected]     = useState<Set<number>>(new Set([0, 1, 2]))
+  const [selected, setSelected]     = useState<Set<number>>(new Set())
+  const [customProjects, setCustomProjects] = useState<Project[]>([])
+  const [showCustomForm, setShowCustomForm] = useState(false)
+  const [customName, setCustomName]   = useState('')
+  const [customEmoji, setCustomEmoji] = useState('📌')
+  const [customCategory, setCustomCategory] = useState<Category>('personal')
   const [waPhone, setWaPhone]       = useState('')
   const [loading, setLoading]       = useState(false)
   const router = useRouter()
+
+  const addCustomProject = () => {
+    if (!customName.trim()) return
+    const color = CUSTOM_COLORS[customProjects.length % CUSTOM_COLORS.length]
+    setCustomProjects(prev => [...prev, {
+      name: customName.trim(),
+      emoji: customEmoji,
+      color,
+      category: customCategory,
+    }])
+    setCustomName('')
+    setCustomEmoji('📌')
+    setCustomCategory('personal')
+    setShowCustomForm(false)
+  }
+
+  const removeCustomProject = (i: number) => {
+    setCustomProjects(prev => prev.filter((_, idx) => idx !== i))
+  }
 
   const toggleProject = (i: number) => {
     setSelected(prev => {
@@ -51,7 +86,6 @@ export default function OnboardingPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    // Actualizar profile
     await supabase.from('profiles').update({
       name: name.trim() || user.user_metadata?.full_name || '',
       whatsapp_phone: waPhone.trim() || null,
@@ -59,11 +93,11 @@ export default function OnboardingPage() {
       updated_at: new Date().toISOString(),
     }).eq('id', user.id)
 
-    // Crear proyectos seleccionados
-    const projects: Project[] = Array.from(selected).map(i => SUGGESTED_PROJECTS[i])
-    if (projects.length > 0) {
+    const suggested: Project[] = Array.from(selected).map(i => SUGGESTED_PROJECTS[i])
+    const allProjects = [...suggested, ...customProjects]
+    if (allProjects.length > 0) {
       await supabase.from('projects').insert(
-        projects.map((p, idx) => ({
+        allProjects.map((p, idx) => ({
           user_id:    user.id,
           name:       p.name,
           emoji:      p.emoji,
@@ -74,18 +108,22 @@ export default function OnboardingPage() {
       )
     }
 
+    // Mensaje de bienvenida por WhatsApp
+    if (waPhone.trim()) {
+      fetch('/api/whatsapp/welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: waPhone.trim(), name: name.trim() || 'amiga' }),
+      }).catch(() => {})
+    }
+
     router.push('/app')
     router.refresh()
   }
 
-  const categoryLabel: Record<Category, string> = {
-    work:     'Trabajo',
-    personal: 'Personal',
-    life:     'Vida',
-  }
-
   return (
-    <div className="flowi-bg min-h-dvh flex flex-col">
+    <div className="flowi-bg min-h-dvh flex flex-col items-center">
+      <div className="w-full flex flex-col flex-1" style={{ maxWidth: '480px' }}>
 
       {/* Header con progreso */}
       <div style={{ padding: '1.5rem 1.5rem 0' }}>
@@ -215,6 +253,7 @@ export default function OnboardingPage() {
               </div>
 
               <div className="flex flex-col gap-2" style={{ flex: 1, overflowY: 'auto', paddingBottom: '1rem' }}>
+                {/* Sugerencias */}
                 {SUGGESTED_PROJECTS.map((p, i) => {
                   const isSelected = selected.has(i)
                   return (
@@ -238,29 +277,11 @@ export default function OnboardingPage() {
                     >
                       <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{p.emoji}</span>
                       <div style={{ flex: 1 }}>
-                        <div style={{
-                          fontWeight: 600,
-                          fontSize: '0.9375rem',
-                          color: 'var(--text-primary)',
-                          marginBottom: '1px',
-                        }}>{p.name}</div>
-                        <div style={{
-                          fontSize: '0.75rem',
-                          color: 'var(--text-tertiary)',
-                          fontWeight: 500,
-                        }}>{categoryLabel[p.category]}</div>
+                        <div style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--text-primary)', marginBottom: '1px' }}>{p.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>{categoryLabel[p.category]}</div>
                       </div>
                       {isSelected && (
-                        <div style={{
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '50%',
-                          background: p.color,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                        }}>
+                        <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
                             <path d="M1 4L4 7L10 1" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
@@ -269,6 +290,174 @@ export default function OnboardingPage() {
                     </motion.button>
                   )
                 })}
+
+                {/* Proyectos custom ya agregados */}
+                {customProjects.map((p, i) => (
+                  <motion.div
+                    key={`custom-${i}`}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.875rem 1rem',
+                      borderRadius: 'var(--radius-lg)',
+                      border: `1.5px solid ${p.color}`,
+                      background: `${p.color}12`,
+                    }}
+                  >
+                    <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{p.emoji}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--text-primary)', marginBottom: '1px' }}>{p.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>{categoryLabel[p.category]}</div>
+                    </div>
+                    <button
+                      onClick={() => removeCustomProject(i)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '4px', fontSize: '1rem', lineHeight: 1 }}
+                    >✕</button>
+                  </motion.div>
+                ))}
+
+                {/* Formulario para agregar proyecto propio */}
+                <AnimatePresence>
+                  {showCustomForm ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      style={{
+                        padding: '1rem',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1.5px dashed var(--brand-primary)',
+                        background: 'rgba(240,107,138,0.04)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                      }}
+                    >
+                      {/* Selector de emoji */}
+                      <div>
+                        <p style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>Elige un ícono</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {QUICK_EMOJIS.map(e => (
+                            <button
+                              key={e}
+                              type="button"
+                              onClick={() => setCustomEmoji(e)}
+                              style={{
+                                width: '36px', height: '36px',
+                                borderRadius: 'var(--radius-md)',
+                                border: `1.5px solid ${customEmoji === e ? 'var(--brand-primary)' : 'var(--border-default)'}`,
+                                background: customEmoji === e ? 'rgba(240,107,138,0.1)' : 'var(--surface-primary)',
+                                fontSize: '1.1rem', cursor: 'pointer',
+                              }}
+                            >{e}</button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Nombre */}
+                      <input
+                        type="text"
+                        autoFocus
+                        value={customName}
+                        onChange={e => setCustomName(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && addCustomProject()}
+                        placeholder="Nombre del proyecto..."
+                        style={{
+                          height: '44px', padding: '0 0.875rem',
+                          borderRadius: 'var(--radius-md)',
+                          border: '1.5px solid var(--border-default)',
+                          background: 'var(--surface-primary)',
+                          color: 'var(--text-primary)',
+                          fontSize: '0.9375rem',
+                          fontFamily: 'var(--font-sans)',
+                          outline: 'none',
+                        }}
+                        onFocus={e => (e.target.style.borderColor = 'var(--brand-primary)')}
+                        onBlur={e => (e.target.style.borderColor = 'var(--border-default)')}
+                      />
+
+                      {/* Categoría */}
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {(['work','personal','life'] as Category[]).map(cat => (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() => setCustomCategory(cat)}
+                            style={{
+                              flex: 1, height: '34px',
+                              borderRadius: 'var(--radius-md)',
+                              border: `1.5px solid ${customCategory === cat ? 'var(--brand-primary)' : 'var(--border-default)'}`,
+                              background: customCategory === cat ? 'rgba(240,107,138,0.1)' : 'var(--surface-primary)',
+                              color: customCategory === cat ? 'var(--brand-primary)' : 'var(--text-tertiary)',
+                              fontSize: '0.8125rem', fontWeight: 600,
+                              cursor: 'pointer', fontFamily: 'var(--font-sans)',
+                            }}
+                          >{categoryLabel[cat]}</button>
+                        ))}
+                      </div>
+
+                      {/* Acciones */}
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setShowCustomForm(false)}
+                          style={{
+                            flex: 1, height: '40px',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1.5px solid var(--border-default)',
+                            background: 'none',
+                            color: 'var(--text-tertiary)',
+                            fontSize: '0.875rem', fontWeight: 500,
+                            cursor: 'pointer', fontFamily: 'var(--font-sans)',
+                          }}
+                        >Cancelar</button>
+                        <button
+                          type="button"
+                          onClick={addCustomProject}
+                          disabled={!customName.trim()}
+                          style={{
+                            flex: 2, height: '40px',
+                            borderRadius: 'var(--radius-md)',
+                            border: 'none',
+                            background: customName.trim() ? 'var(--brand-primary)' : 'var(--border-default)',
+                            color: customName.trim() ? 'var(--brand-primary-text)' : 'var(--text-tertiary)',
+                            fontSize: '0.875rem', fontWeight: 600,
+                            cursor: customName.trim() ? 'pointer' : 'not-allowed',
+                            fontFamily: 'var(--font-sans)',
+                          }}
+                        >Agregar proyecto</button>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setShowCustomForm(true)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        padding: '0.875rem 1rem',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1.5px dashed var(--border-strong)',
+                        background: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.9375rem',
+                        fontWeight: 500,
+                        fontFamily: 'var(--font-sans)',
+                        width: '100%',
+                      }}
+                    >
+                      <span style={{ fontSize: '1.1rem' }}>＋</span> Agregar proyecto propio
+                    </motion.button>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div style={{ paddingTop: '1rem' }}>
@@ -288,7 +477,9 @@ export default function OnboardingPage() {
                     cursor: 'pointer',
                   }}
                 >
-                  {selected.size === 0 ? 'Continuar sin proyectos' : `Continuar con ${selected.size} proyecto${selected.size > 1 ? 's' : ''} →`}
+                  {(selected.size + customProjects.length) === 0
+                    ? 'Continuar sin proyectos'
+                    : `Continuar con ${selected.size + customProjects.length} proyecto${(selected.size + customProjects.length) > 1 ? 's' : ''} →`}
                 </motion.button>
               </div>
             </motion.div>
@@ -423,6 +614,7 @@ export default function OnboardingPage() {
           )}
 
         </AnimatePresence>
+      </div>
       </div>
     </div>
   )
