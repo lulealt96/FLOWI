@@ -32,6 +32,40 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
     .eq('area_id', id)
     .single()
 
+  // Global Flowling avatar
+  const { data: userAvatar } = await supabase
+    .from('user_avatars')
+    .select('total_xp, level, last_seen_at')
+    .eq('user_id', user.id)
+    .single()
+
+  // Top area indexes for accessories
+  const { data: allAvatars } = await supabase
+    .from('area_avatars')
+    .select('area_id, xp')
+    .eq('user_id', user.id)
+
+  const { data: allAreas } = await supabase
+    .from('areas')
+    .select('id, order_index')
+    .eq('user_id', user.id)
+
+  const orderByAreaId: Record<string, number> = {}
+  allAreas?.forEach(a => { orderByAreaId[a.id] = a.order_index })
+
+  const topAreaIndexes = (allAvatars ?? [])
+    .sort((a, b) => b.xp - a.xp)
+    .slice(0, 3)
+    .map(a => orderByAreaId[a.area_id])
+    .filter(v => v !== undefined)
+
+  // Streak
+  const { data: streak } = await supabase
+    .from('streaks')
+    .select('current_streak')
+    .eq('user_id', user.id)
+    .single()
+
   const { data: evaluations } = await supabase
     .from('area_evaluations')
     .select('score, evaluated_at, notes')
@@ -63,6 +97,9 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
       evaluations={evaluations ?? []}
       countByProject={countByProject}
       userId={user.id}
+      userAvatar={userAvatar ?? null}
+      topAreaIndexes={topAreaIndexes}
+      streak={streak?.current_streak ?? 0}
     />
   )
 }

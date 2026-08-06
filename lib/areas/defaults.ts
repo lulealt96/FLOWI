@@ -162,3 +162,25 @@ export function getNextLevel(xp: number) {
   const current = getAvatarLevel(xp)
   return AVATAR_LEVELS.find(l => l.level === current.level + 1) ?? null
 }
+
+// ── FLOWLING (avatar global único por usuario) ──────────────────────────────
+
+export const FLOWLING_LEVELS = [
+  { level: 1, minXp: 0,    label: 'Semilla',          stageIdx: 0, description: 'Acaba de despertar' },
+  { level: 2, minXp: 50,   label: 'Brote',            stageIdx: 1, description: 'Tomando impulso' },
+  { level: 3, minXp: 150,  label: 'Explorador',       stageIdx: 2, description: 'Explorando su potencial' },
+  { level: 4, minXp: 400,  label: 'Maestro del Flow', stageIdx: 3, description: 'Dominando su vida' },
+  { level: 5, minXp: 1000, label: 'Guardián Flow',    stageIdx: 4, description: 'Ser de luz y equilibrio' },
+]
+
+export function getFlowlingLevel(xp: number) {
+  for (let i = FLOWLING_LEVELS.length - 1; i >= 0; i--) {
+    if (xp >= FLOWLING_LEVELS[i].minXp) return FLOWLING_LEVELS[i]
+  }
+  return FLOWLING_LEVELS[0]
+}
+
+export function getFlowlingNextLevel(xp: number) {
+  const cur = getFlowlingLevel(xp)
+  return FLOWLING_LEVELS.find(l => l.level === cur.level + 1) ?? null
+}

@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, Plus, FolderOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import AvatarStar from '@/components/AvatarStar'
+import Flowling, { type FlowlingEmotion } from '@/components/Flowling'
 import { getAvatarLevel, getNextLevel, AVATAR_LEVELS, DEFAULT_AREAS } from '@/lib/areas/defaults'
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
@@ -31,9 +31,23 @@ interface Props {
   evaluations: Evaluation[]
   countByProject: Record<string, number>
   userId: string
+  userAvatar: { total_xp: number; level: number; last_seen_at: string } | null
+  topAreaIndexes: number[]
+  streak: number
 }
 
-export default function AreaDetailClient({ area, projects, avatar, evaluations, countByProject, userId }: Props) {
+export default function AreaDetailClient({ area, projects, avatar, evaluations, countByProject, userId, userAvatar, topAreaIndexes, streak }: Props) {
+  const totalXp = userAvatar?.total_xp ?? 0
+
+  const emotion: FlowlingEmotion = (() => {
+    if (!userAvatar?.last_seen_at) return 'encouraging'
+    const days = Math.floor((Date.now() - new Date(userAvatar.last_seen_at).getTime()) / 86_400_000)
+    if (days >= 2) return 'sleeping'
+    const today = new Date().toISOString().split('T')[0]
+    const last  = new Date(userAvatar.last_seen_at).toISOString().split('T')[0]
+    if (last === today && streak >= 3) return 'celebrating'
+    return 'happy'
+  })()
   const questions = DEFAULT_AREAS[area.order_index]?.questions ?? []
   const [showEvalModal, setShowEvalModal] = useState(false)
   const [answers, setAnswers] = useState<number[]>(() => questions.map(() => evaluations[0]?.score ?? 70))
@@ -118,7 +132,23 @@ export default function AreaDetailClient({ area, projects, avatar, evaluations, 
             boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
           }}
         >
-          <AvatarStar xp={avatar.xp} color={area.color} emoji={area.emoji} size="lg" showLevel showXp />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <Flowling
+              totalXp={totalXp}
+              topAreaIndexes={topAreaIndexes}
+              streak={streak}
+              emotion={emotion}
+              size="md"
+            />
+            {/* Área badge */}
+            <div style={{
+              fontSize: '0.6875rem', fontWeight: 700, padding: '2px 8px',
+              borderRadius: '99px', background: `${area.color}20`,
+              color: area.color, border: `1px solid ${area.color}40`,
+            }}>
+              {area.emoji} {area.name.split(' ')[0]}
+            </div>
+          </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '0.375rem' }}>

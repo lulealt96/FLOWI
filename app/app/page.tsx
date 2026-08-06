@@ -26,6 +26,13 @@ export default async function DashboardPage() {
   // Si no tiene áreas, redirigir al setup
   if (!areas || areas.length === 0) redirect('/app/setup-areas')
 
+  // Avatar global del usuario (Flowling)
+  const { data: userAvatar } = await supabase
+    .from('user_avatars')
+    .select('total_xp, level, last_seen_at')
+    .eq('user_id', user.id)
+    .single()
+
   // Última evaluación por área
   const { data: evalRows } = await supabase
     .from('area_evaluations')
@@ -48,6 +55,13 @@ export default async function DashboardPage() {
 
   const xpByArea: Record<string, number> = {}
   avatars?.forEach(a => { xpByArea[a.area_id] = a.xp })
+
+  // Top area indexes (por order_index) ordenados por XP descendente
+  const topAreaIndexes = (areas ?? [])
+    .map(a => ({ orderIndex: a.order_index, xp: xpByArea[a.id] ?? 0 }))
+    .sort((a, b) => b.xp - a.xp)
+    .slice(0, 3)
+    .map(a => a.orderIndex)
 
   // Racha
   const { data: streak } = await supabase
@@ -99,6 +113,8 @@ export default async function DashboardPage() {
       projects={projects ?? []}
       countByProject={countByProject}
       waNumber={process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY_NUMBER ?? '15556660581'}
+      userAvatar={userAvatar ?? null}
+      topAreaIndexes={topAreaIndexes}
     />
   )
 }

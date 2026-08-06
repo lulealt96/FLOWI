@@ -4,14 +4,14 @@ import { motion } from 'motion/react'
 import Link from 'next/link'
 import { MessageCircle, ArrowRight, Flame } from 'lucide-react'
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts'
-import AvatarStar from '@/components/AvatarStar'
-import { getAvatarLevel } from '@/lib/areas/defaults'
+import Flowling, { type FlowlingEmotion } from '@/components/Flowling'
+import { getFlowlingLevel } from '@/lib/areas/defaults'
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
-interface Area { id: string; name: string; emoji: string; color: string; order_index: number }
+interface Area    { id: string; name: string; emoji: string; color: string; order_index: number }
 interface Project { id: string; name: string; emoji: string; color: string; area_id: string | null }
-interface Task { id: string; title: string; status: string; priority: string; due_date: string | null; project_id: string }
+interface Task    { id: string; title: string; status: string; priority: string; due_date: string | null; project_id: string }
 
 interface Props {
   userName: string
@@ -23,6 +23,8 @@ interface Props {
   projects: Project[]
   countByProject: Record<string, number>
   waNumber: string
+  userAvatar: { total_xp: number; level: number; last_seen_at: string } | null
+  topAreaIndexes: number[]
 }
 
 function greeting() {
@@ -46,19 +48,44 @@ const PRIORITY_COLOR: Record<string, string> = {
   high: '#F06B8A', medium: '#F0A06B', low: '#6B8AF0',
 }
 
+function computeEmotion(
+  lastSeenAt: string | null | undefined,
+  streak: number,
+): FlowlingEmotion {
+  if (!lastSeenAt) return 'encouraging'
+  const todayStr    = new Date().toISOString().split('T')[0]
+  const lastDateStr = new Date(lastSeenAt).toISOString().split('T')[0]
+  const daysSince   = Math.floor((Date.now() - new Date(lastSeenAt).getTime()) / 86_400_000)
+  if (daysSince >= 2)        return 'sleeping'
+  if (lastDateStr === todayStr && streak >= 3) return 'celebrating'
+  if (lastDateStr === todayStr) return 'happy'
+  return 'encouraging'
+}
+
+function flowlingMessage(emotion: FlowlingEmotion, name: string): string {
+  switch (emotion) {
+    case 'celebrating':  return `¡${name}, estás en racha! 🔥`
+    case 'sleeping':     return `Hace un rato no trabajamos juntos. ¿Volvemos?`
+    case 'encouraging':  return `¿Intentamos una tarea pequeñita hoy?`
+    default:             return `Tu Flowling está listo para crecer contigo.`
+  }
+}
+
 export default function DashboardClient({
   userName, areas, latestEvalByArea, xpByArea,
   streak, urgentTasks, projects, countByProject, waNumber,
+  userAvatar, topAreaIndexes,
 }: Props) {
-  const firstName = userName.split(' ')[0]
+  const firstName    = userName.split(' ')[0]
   const totalPending = Object.values(countByProject).reduce((s, n) => s + n, 0)
+  const totalXp      = userAvatar?.total_xp ?? 0
+  const flowlingLvl  = getFlowlingLevel(totalXp)
+  const emotion      = computeEmotion(userAvatar?.last_seen_at, streak.current_streak)
 
-  // Build cometa data
   const cometaData = areas.map(a => ({
-    area: a.name.split(' ').slice(0, 2).join(' '),
-    score: latestEvalByArea[a.id] ?? 0,
+    area:     a.name.split(' ').slice(0, 2).join(' '),
+    score:    latestEvalByArea[a.id] ?? 0,
     fullMark: 100,
-    color: a.color,
   }))
 
   const avgScore = areas.length > 0
@@ -69,10 +96,10 @@ export default function DashboardClient({
     <>
       <style>{`
         .db-wrap   { padding-bottom: 2rem; }
-        .db-header { padding: 2rem 1.5rem 1rem; }
+        .db-header { padding: 1.75rem 1.5rem 0.75rem; }
         .db-body   { padding: 0 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
         @media (min-width: 768px) {
-          .db-header { padding: 2.5rem 2.5rem 1.25rem; }
+          .db-header { padding: 2.25rem 2.5rem 1rem; }
           .db-body   { padding: 0 2.5rem; flex-direction: row; align-items: flex-start; gap: 2rem; }
           .db-left   { flex: 1.1; min-width: 0; display: flex; flex-direction: column; gap: 1.5rem; }
           .db-right  { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1.5rem; }
@@ -93,11 +120,10 @@ export default function DashboardClient({
                   {firstName} ✦
                 </h1>
               </div>
-
-              {/* Streak badge */}
               {streak.current_streak > 0 && (
                 <motion.div
-                  initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3, type: 'spring', stiffness: 400 }}
+                  initial={{ scale: 0 }} animate={{ scale: 1 }}
+                  transition={{ delay: 0.3, type: 'spring', stiffness: 400 }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
                     background: 'linear-gradient(135deg, #F97316, #EF4444)',
@@ -119,13 +145,74 @@ export default function DashboardClient({
           {/* ── COLUMNA IZQUIERDA ── */}
           <div className="db-left">
 
+            {/* Flowling hero card */}
+            <motion.div
+              initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.06, duration: 0.5, ease: EASE }}
+              style={{
+                background: 'var(--surface-primary)',
+                borderRadius: 'var(--radius-xl)',
+                border: '1px solid var(--border-default)',
+                padding: '1.25rem',
+                display: 'flex', alignItems: 'center', gap: '1.25rem',
+                boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
+                overflow: 'hidden',
+                position: 'relative',
+              }}
+            >
+              {/* Fondo con degradado sutil */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'radial-gradient(ellipse at 20% 50%, rgba(16,185,129,0.06) 0%, transparent 70%)',
+                pointerEvents: 'none',
+              }} />
+
+              <Flowling
+                totalXp={totalXp}
+                topAreaIndexes={topAreaIndexes}
+                streak={streak.current_streak}
+                emotion={emotion}
+                size="md"
+              />
+
+              <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                  <p style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                    {flowlingLvl.label}
+                  </p>
+                  <span style={{
+                    fontSize: '0.6875rem', fontWeight: 700, padding: '1px 7px',
+                    borderRadius: '99px', background: 'var(--surface-secondary)',
+                    color: 'var(--text-tertiary)', border: '1px solid var(--border-default)',
+                  }}>
+                    Nv. {flowlingLvl.level}
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', lineHeight: 1.45, marginBottom: '0.75rem' }}>
+                  {flowlingMessage(emotion, firstName)}
+                </p>
+                <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', fontWeight: 600, marginBottom: '4px' }}>
+                  {totalXp} XP totales
+                </p>
+                {/* Mini XP bar */}
+                <div style={{ height: '4px', borderRadius: '99px', background: 'var(--surface-secondary)', overflow: 'hidden' }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, (totalXp / (totalXp + 50)) * 100)}%` }}
+                    transition={{ duration: 1.2, ease: EASE, delay: 0.4 }}
+                    style={{ height: '100%', borderRadius: '99px', background: '#1EA86B' }}
+                  />
+                </div>
+              </div>
+            </motion.div>
+
             {/* Cometa chart */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08, duration: 0.5, ease: EASE }}
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12, duration: 0.5, ease: EASE }}
               style={{
                 background: 'var(--surface-primary)', borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--border-default)',
-                boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
+                border: '1px solid var(--border-default)', boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
                 overflow: 'hidden',
               }}
             >
@@ -149,32 +236,19 @@ export default function DashboardClient({
                     dataKey="area"
                     tick={{ fontSize: 10, fill: 'var(--text-tertiary)', fontFamily: 'var(--font-sans)', fontWeight: 600 }}
                   />
-                  <Radar
-                    name="Score"
-                    dataKey="score"
-                    stroke="#F06B8A"
-                    fill="#F06B8A"
-                    fillOpacity={0.15}
-                    strokeWidth={2}
-                  />
+                  <Radar name="Score" dataKey="score" stroke="#F06B8A" fill="#F06B8A" fillOpacity={0.15} strokeWidth={2} />
                 </RadarChart>
               </ResponsiveContainer>
             </motion.div>
 
             {/* Tareas urgentes */}
-            <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16, duration: 0.5, ease: EASE }}>
+            <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.5, ease: EASE }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                 <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Para hoy</h2>
-                <Link href="/app/tasks" style={{ fontSize: '0.8125rem', color: 'var(--brand-primary)', fontWeight: 600, textDecoration: 'none' }}>
-                  Ver todas
-                </Link>
+                <Link href="/app/tasks" style={{ fontSize: '0.8125rem', color: 'var(--brand-primary)', fontWeight: 600, textDecoration: 'none' }}>Ver todas</Link>
               </div>
-
               {urgentTasks.length === 0 ? (
-                <div style={{
-                  background: 'var(--surface-primary)', borderRadius: 'var(--radius-xl)',
-                  padding: '1.25rem', border: '1px solid var(--border-default)', textAlign: 'center',
-                }}>
+                <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-xl)', padding: '1.25rem', border: '1px solid var(--border-default)', textAlign: 'center' }}>
                   <p style={{ fontSize: '1.5rem', marginBottom: '0.375rem' }}>🎉</p>
                   <p style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9375rem' }}>¡Todo al día!</p>
                   <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '2px' }}>No tienes tareas urgentes</p>
@@ -183,13 +257,11 @@ export default function DashboardClient({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {urgentTasks.map((task, i) => {
                     const project = projects.find(p => p.id === task.project_id)
-                    const date = formatDate(task.due_date)
+                    const date    = formatDate(task.due_date)
                     return (
-                      <motion.div
-                        key={task.id}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 + i * 0.05, duration: 0.3, ease: EASE }}
+                      <motion.div key={task.id}
+                        initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.22 + i * 0.05, duration: 0.3, ease: EASE }}
                         style={{
                           background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)',
                           padding: '0.875rem 1rem', border: '1px solid var(--border-default)',
@@ -215,7 +287,7 @@ export default function DashboardClient({
             </motion.section>
 
             {/* WhatsApp banner */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22, duration: 0.5, ease: EASE }}>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24, duration: 0.5, ease: EASE }}>
               <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>
                 <div style={{
                   background: 'linear-gradient(135deg, #F06B8A 0%, #c4527a 100%)',
@@ -234,89 +306,99 @@ export default function DashboardClient({
                 </div>
               </a>
             </motion.div>
-
           </div>
 
           {/* ── COLUMNA DERECHA ── */}
           <div className="db-right">
 
-            {/* Stat resumen */}
+            {/* Stats */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5, ease: EASE }}
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.5, ease: EASE }}
               style={{
                 background: 'var(--surface-primary)', borderRadius: 'var(--radius-xl)',
                 padding: '1.125rem', border: '1px solid var(--border-default)',
                 display: 'flex', gap: '1rem',
               }}
             >
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{totalPending}</p>
-                <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', fontWeight: 600, marginTop: '3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pendientes</p>
-              </div>
-              <div style={{ width: '1px', background: 'var(--border-default)' }} />
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--brand-primary)', lineHeight: 1 }}>{avgScore}</p>
-                <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', fontWeight: 600, marginTop: '3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Promedio</p>
-              </div>
-              <div style={{ width: '1px', background: 'var(--border-default)' }} />
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <p style={{ fontSize: '1.5rem', fontWeight: 800, color: '#F97316', lineHeight: 1 }}>{streak.current_streak}</p>
-                <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', fontWeight: 600, marginTop: '3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Racha</p>
-              </div>
+              {[
+                { value: totalPending, label: 'Pendientes', color: 'var(--text-primary)' },
+                { value: avgScore,     label: 'Promedio',   color: 'var(--brand-primary)' },
+                { value: streak.current_streak, label: 'Racha', color: '#F97316' },
+              ].map((stat, i) => (
+                <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
+                  {i > 0 && (
+                    <div style={{ position: 'absolute', left: 0, top: '10%', bottom: '10%', width: '1px', background: 'var(--border-default)' }} />
+                  )}
+                  <motion.p
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 + i * 0.08 }}
+                    style={{ fontSize: '1.5rem', fontWeight: 800, color: stat.color, lineHeight: 1 }}
+                  >
+                    {stat.value}
+                  </motion.p>
+                  <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', fontWeight: 600, marginTop: '3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
             </motion.div>
 
-            {/* Áreas — avatares */}
+            {/* Áreas */}
             <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.5, ease: EASE }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                 <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Mis áreas</h2>
-                <Link href="/app/areas" style={{ fontSize: '0.8125rem', color: 'var(--brand-primary)', fontWeight: 600, textDecoration: 'none' }}>
-                  Ver todas
-                </Link>
+                <Link href="/app/areas" style={{ fontSize: '0.8125rem', color: 'var(--brand-primary)', fontWeight: 600, textDecoration: 'none' }}>Ver todas</Link>
               </div>
-
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {areas.map((area, i) => {
-                  const xp = xpByArea[area.id] ?? 0
-                  const avatarLevel = getAvatarLevel(xp)
-                  const score = latestEvalByArea[area.id] ?? 0
-                  const areaProjects = projects.filter(p => p.area_id === area.id)
-                  const pending = areaProjects.reduce((s, p) => s + (countByProject[p.id] ?? 0), 0)
+                  const score   = latestEvalByArea[area.id] ?? 0
+                  const pending = projects.filter(p => p.area_id === area.id)
+                    .reduce((s, p) => s + (countByProject[p.id] ?? 0), 0)
+                  const xp      = xpByArea[area.id] ?? 0
+                  const isTop   = topAreaIndexes[0] === area.order_index
 
                   return (
-                    <motion.div
-                      key={area.id}
-                      initial={{ opacity: 0, x: 8 }}
-                      animate={{ opacity: 1, x: 0 }}
+                    <motion.div key={area.id}
+                      initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.22 + i * 0.04, duration: 0.3, ease: EASE }}
                     >
                       <Link href={`/app/areas/${area.id}`} style={{ textDecoration: 'none' }}>
                         <div style={{
                           background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)',
-                          padding: '0.875rem 1rem', border: '1px solid var(--border-default)',
-                          display: 'flex', alignItems: 'center', gap: '0.875rem',
+                          padding: '0.75rem 1rem', border: '1px solid var(--border-default)',
+                          display: 'flex', alignItems: 'center', gap: '0.75rem',
                           boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
                           borderLeft: `3px solid ${area.color}`,
-                          transition: 'box-shadow 0.2s',
                         }}>
-                          <AvatarStar xp={xp} color={area.color} emoji={area.emoji} size="sm" />
+                          {/* Emoji badge */}
+                          <div style={{
+                            width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
+                            background: `${area.color}18`, border: `1.5px solid ${area.color}35`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.125rem',
+                          }}>
+                            {area.emoji}
+                          </div>
+
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {area.name}
-                            </p>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              <span style={{ fontSize: '0.6875rem', color: area.color, fontWeight: 700 }}>
-                                Nv.{avatarLevel.level} · {avatarLevel.label}
-                              </span>
-                              {pending > 0 && (
-                                <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>
-                                  · {pending} pendiente{pending > 1 ? 's' : ''}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {area.name}
+                              </p>
+                              {isTop && (
+                                <span style={{ fontSize: '0.5625rem', fontWeight: 700, color: area.color, background: `${area.color}18`, padding: '1px 5px', borderRadius: '4px', flexShrink: 0 }}>
+                                  ★ TOP
                                 </span>
                               )}
                             </div>
+                            <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>
+                              {xp} XP · {pending > 0 ? `${pending} pendiente${pending > 1 ? 's' : ''}` : 'Al día ✓'}
+                            </p>
                           </div>
+
                           <div style={{ textAlign: 'right', flexShrink: 0 }}>
                             <p style={{ fontSize: '1.125rem', fontWeight: 800, color: area.color, lineHeight: 1 }}>{score}</p>
-                            <p style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/ 100</p>
+                            <p style={{ fontSize: '0.5625rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/100</p>
                           </div>
                         </div>
                       </Link>
@@ -327,7 +409,6 @@ export default function DashboardClient({
             </motion.section>
 
           </div>
-
         </div>
       </div>
     </>

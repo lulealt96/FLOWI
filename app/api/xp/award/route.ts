@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getAvatarLevel } from '@/lib/areas/defaults'
+import { getAvatarLevel, getFlowlingLevel } from '@/lib/areas/defaults'
 
 const XP_PER_TASK = 5
 
@@ -95,5 +95,23 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  return NextResponse.json({ ok: true, xp: XP_PER_TASK, newXp, newLevel, leveledUp })
+  // Also update global user avatar
+  const { data: userAvatar } = await supabase
+    .from('user_avatars')
+    .select('total_xp, level')
+    .eq('user_id', user.id)
+    .single()
+
+  const globalXp    = (userAvatar?.total_xp ?? 0) + XP_PER_TASK
+  const globalLevel = getFlowlingLevel(globalXp).level
+
+  await supabase.from('user_avatars').upsert({
+    user_id:     user.id,
+    total_xp:    globalXp,
+    level:       globalLevel,
+    last_seen_at: new Date().toISOString(),
+    updated_at:   new Date().toISOString(),
+  }, { onConflict: 'user_id' })
+
+  return NextResponse.json({ ok: true, xp: XP_PER_TASK, newXp, newLevel, leveledUp, globalXp, globalLevel })
 }

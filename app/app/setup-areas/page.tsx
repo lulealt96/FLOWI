@@ -129,6 +129,13 @@ export default function SetupAreasPage() {
       longest_streak: 0,
     }, { onConflict: 'user_id' })
 
+    // Crear avatar global del usuario (Flowling)
+    await supabase.from('user_avatars').upsert({
+      user_id:  user.id,
+      total_xp: 0,
+      level:    1,
+    }, { onConflict: 'user_id' })
+
     router.push('/app')
     router.refresh()
   }
