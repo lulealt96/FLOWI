@@ -2,14 +2,14 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { House, FolderSimple, CheckSquare, Bell, Gear } from '@phosphor-icons/react'
+import { House, Star, FolderSimple, CheckSquare, Gear } from '@phosphor-icons/react'
 
 const NAV = [
-  { href: '/app',            label: 'Inicio',      Icon: House         },
-  { href: '/app/projects',   label: 'Proyectos',   Icon: FolderSimple  },
-  { href: '/app/tasks',      label: 'Tareas',      Icon: CheckSquare   },
-  { href: '/app/reminders',  label: 'Recordatorios', Icon: Bell        },
-  { href: '/app/settings',   label: 'Ajustes',     Icon: Gear          },
+  { href: '/app',          label: 'Inicio',    Icon: House        },
+  { href: '/app/areas',    label: 'Áreas',     Icon: Star         },
+  { href: '/app/projects', label: 'Proyectos', Icon: FolderSimple },
+  { href: '/app/tasks',    label: 'Tareas',    Icon: CheckSquare  },
+  { href: '/app/settings', label: 'Ajustes',   Icon: Gear         },
 ]
 
 export default function BottomNav() {

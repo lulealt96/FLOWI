@@ -15,14 +15,45 @@ export default async function DashboardPage() {
 
   if (!profile?.onboarding_completed) redirect('/onboarding')
 
-  const { data: projects } = await supabase
-    .from('projects')
-    .select('id, name, emoji, color, category')
+  // Verificar si el usuario ya tiene áreas configuradas
+  const { data: areas } = await supabase
+    .from('areas')
+    .select('id, name, emoji, color, order_index')
     .eq('user_id', user.id)
     .eq('is_active', true)
-    .order('sort_order')
+    .order('order_index')
 
-  const allProjects = projects ?? []
+  // Si no tiene áreas, redirigir al setup
+  if (!areas || areas.length === 0) redirect('/app/setup-areas')
+
+  // Última evaluación por área
+  const { data: evalRows } = await supabase
+    .from('area_evaluations')
+    .select('area_id, score, evaluated_at')
+    .eq('user_id', user.id)
+    .order('evaluated_at', { ascending: false })
+
+  // Tomar solo la más reciente por área
+  const latestEvalByArea: Record<string, number> = {}
+  evalRows?.forEach(e => {
+    if (!(e.area_id in latestEvalByArea)) latestEvalByArea[e.area_id] = e.score
+  })
+
+  // Avatares XP
+  const { data: avatars } = await supabase
+    .from('area_avatars')
+    .select('area_id, xp, level')
+    .eq('user_id', user.id)
+
+  const xpByArea: Record<string, number> = {}
+  avatars?.forEach(a => { xpByArea[a.area_id] = a.xp })
+
+  // Racha
+  const { data: streak } = await supabase
+    .from('streaks')
+    .select('current_streak, longest_streak')
+    .eq('user_id', user.id)
+    .single()
 
   // Tareas urgentes (hoy o vencidas)
   const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999)
@@ -34,9 +65,17 @@ export default async function DashboardPage() {
     .lte('due_date', todayEnd.toISOString())
     .order('priority', { ascending: false })
     .order('due_date')
-    .limit(8)
+    .limit(6)
 
-  // Conteo de pendientes por proyecto
+  // Proyectos
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('id, name, emoji, color, area_id')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .order('sort_order')
+
+  // Conteo pendientes por proyecto
   const { data: taskCounts } = await supabase
     .from('tasks')
     .select('project_id')
@@ -48,45 +87,16 @@ export default async function DashboardPage() {
     countByProject[t.project_id] = (countByProject[t.project_id] ?? 0) + 1
   })
 
-  // Balance financiero del mes
-  const financeProject = allProjects.find(p => /finanz|presupuest|gasto|budget|dinero|plata/i.test(p.name))
-  let financeData: { income: number; expense: number } | null = null
-  if (financeProject) {
-    const now = new Date()
-    const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-    const { data: txs } = await supabase
-      .from('transactions')
-      .select('type, amount')
-      .eq('project_id', financeProject.id)
-      .gte('date', monthStart)
-    if (txs) {
-      financeData = {
-        income:  txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
-        expense: txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
-      }
-    }
-  }
-
-  // Progreso de hábitos de hoy
-  const habitProject = allProjects.find(p => /hábit|habit/i.test(p.name))
-  let habitData: { total: number; done: number } | null = null
-  if (habitProject) {
-    const todayDate = new Date().toISOString().split('T')[0]
-    const [{ data: habits }, { data: logs }] = await Promise.all([
-      supabase.from('habits').select('id').eq('project_id', habitProject.id).eq('user_id', user.id),
-      supabase.from('habit_logs').select('id').eq('user_id', user.id).eq('date', todayDate),
-    ])
-    if (habits) habitData = { total: habits.length, done: logs?.length ?? 0 }
-  }
-
   return (
     <DashboardClient
       userName={profile?.name ?? ''}
-      projects={allProjects}
+      areas={areas ?? []}
+      latestEvalByArea={latestEvalByArea}
+      xpByArea={xpByArea}
+      streak={streak ?? { current_streak: 0, longest_streak: 0 }}
       urgentTasks={urgentTasks ?? []}
+      projects={projects ?? []}
       countByProject={countByProject}
-      financeData={financeData}
-      habitData={habitData}
       waNumber={process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY_NUMBER ?? '15556660581'}
     />
   )
