@@ -32,6 +32,7 @@ export default async function DashboardPage() {
     .select('area_id, score, evaluated_at')
     .eq('user_id', user.id)
     .order('evaluated_at', { ascending: false })
+    .order('created_at', { ascending: false })
 
   // Tomar solo la más reciente por área
   const latestEvalByArea: Record<string, number> = {}

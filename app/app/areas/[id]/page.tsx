@@ -38,6 +38,7 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
     .eq('user_id', user.id)
     .eq('area_id', id)
     .order('evaluated_at', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(6)
 
   // Conteo pendientes por proyecto
