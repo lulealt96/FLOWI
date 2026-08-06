@@ -6,7 +6,7 @@ import { SPECIES, type SpeciesId } from '@/lib/flowlings/species'
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
 
-export type FlowlingEmotion = 'happy' | 'celebrating' | 'sleeping' | 'encouraging'
+export type FlowlingEmotion = 'happy' | 'celebrating' | 'sleeping' | 'encouraging' | 'concentrated' | 'tired'
 export type FlowlingSize    = 'sm' | 'md' | 'lg' | 'xl'
 
 export interface FlowlingProps {
@@ -19,7 +19,7 @@ export interface FlowlingProps {
   showInfo?:       boolean
 }
 
-/* ── Stage size (species controls color) ───────────────────────────────── */
+/* ── Stage / size ───────────────────────────────────────────────────────── */
 
 const CX = 60
 const CY = 90
@@ -38,19 +38,25 @@ const STAGE_SIZE: SS[] = [
 
 const SIZE_H: Record<FlowlingSize, number> = { sm: 76, md: 108, lg: 150, xl: 200 }
 
+const BLINK_DELAY: Record<string, number> = {
+  bloom: 0, nova: 1.2, kiro: 2.4, momo: 0.6,
+  octi: 1.8, ember: 3.0, lumi: 0.3, sage: 2.1,
+}
+
 function resolveS(si: number, speciesId: string): S {
   const sp  = SPECIES[(speciesId as SpeciesId)] ?? SPECIES.bloom
   const [c1, c2] = sp.stages[si] ?? sp.stages[0]
   return { ...STAGE_SIZE[si], c1, c2, dark: sp.dark }
 }
 
-/* ── Sub-components ─────────────────────────────────────────────────────── */
+/* ── Eyes ───────────────────────────────────────────────────────────────── */
 
-function Eyes({ s, emotion }: { s: S; emotion: FlowlingEmotion }) {
+function Eyes({ s, emotion, speciesId }: { s: S; emotion: FlowlingEmotion; speciesId: string }) {
   const lx = CX - s.eyeOff
   const rx = CX + s.eyeOff
   const ey = CY + s.eyeY
   const r  = s.eyeR
+  const bd = BLINK_DELAY[speciesId] ?? 0
 
   if (emotion === 'sleeping') {
     const sw = r * 0.55
@@ -63,17 +69,55 @@ function Eyes({ s, emotion }: { s: S; emotion: FlowlingEmotion }) {
       </>
     )
   }
+
+  if (emotion === 'concentrated') {
+    // Upper semicircle = squinting
+    return (
+      <>
+        <path d={`M${lx-r},${ey} A${r},${r} 0 0,0 ${lx+r},${ey} Z`} fill={s.dark} />
+        <circle cx={lx + r*0.28} cy={ey - r*0.2} r={r*0.25} fill="white" opacity={0.75} />
+        <path d={`M${rx-r},${ey} A${r},${r} 0 0,0 ${rx+r},${ey} Z`} fill={s.dark} />
+        <circle cx={rx + r*0.28} cy={ey - r*0.2} r={r*0.25} fill="white" opacity={0.75} />
+      </>
+    )
+  }
+
+  if (emotion === 'tired') {
+    // Lower semicircle = droopy
+    return (
+      <>
+        <path d={`M${lx-r},${ey} A${r},${r} 0 0,1 ${lx+r},${ey} Z`} fill={s.dark} />
+        <circle cx={lx + r*0.25} cy={ey + r*0.18} r={r*0.22} fill="white" opacity={0.65} />
+        <path d={`M${rx-r},${ey} A${r},${r} 0 0,1 ${rx+r},${ey} Z`} fill={s.dark} />
+        <circle cx={rx + r*0.25} cy={ey + r*0.18} r={r*0.22} fill="white" opacity={0.65} />
+      </>
+    )
+  }
+
   const big = emotion === 'celebrating'
   const er  = big ? r * 1.15 : r
+
   return (
-    <>
+    <motion.g
+      animate={{ scaleY: [1, 1, 1, 0.06, 1, 1, 1, 1, 1, 1] }}
+      transition={{
+        duration: 6,
+        repeat: Infinity,
+        delay: bd,
+        times: [0, 0.33, 0.40, 0.42, 0.45, 0.52, 0.65, 0.78, 0.9, 1],
+        ease: 'easeInOut',
+      }}
+      style={{ transformOrigin: `${CX}px ${ey}px` }}
+    >
       <circle cx={lx} cy={ey} r={er} fill={s.dark} />
       <circle cx={lx + er*0.32} cy={ey - er*0.38} r={er*0.3} fill="white" opacity={0.8} />
       <circle cx={rx} cy={ey} r={er} fill={s.dark} />
       <circle cx={rx + er*0.32} cy={ey - er*0.38} r={er*0.3} fill="white" opacity={0.8} />
-    </>
+    </motion.g>
   )
 }
+
+/* ── Mouth ──────────────────────────────────────────────────────────────── */
 
 function Mouth({ s, emotion }: { s: S; emotion: FlowlingEmotion }) {
   const my = CY + s.mOff
@@ -94,11 +138,27 @@ function Mouth({ s, emotion }: { s: S; emotion: FlowlingEmotion }) {
       </>
     )
   }
+  if (emotion === 'concentrated') {
+    // Small determined line — slight downward curve at ends
+    return (
+      <path d={`M${CX-mw*0.55},${my} Q${CX},${my+md*0.25} ${CX+mw*0.55},${my}`}
+        fill="none" stroke={s.dark} strokeWidth={sw} strokeLinecap="round" />
+    )
+  }
+  if (emotion === 'tired') {
+    // Small open yawn mouth
+    return (
+      <ellipse cx={CX} cy={my + md*0.2} rx={mw * 0.45} ry={md * 0.38}
+        fill={s.dark} opacity={0.28} />
+    )
+  }
   return (
     <path d={`M${CX-mw},${my} Q${CX},${my+md} ${CX+mw},${my}`}
       fill="none" stroke={s.dark} strokeWidth={sw} strokeLinecap="round" />
   )
 }
+
+/* ── Blush ──────────────────────────────────────────────────────────────── */
 
 function Blush({ s }: { s: S }) {
   const bx = s.eyeOff * 1.5
@@ -112,6 +172,207 @@ function Blush({ s }: { s: S }) {
     </>
   )
 }
+
+/* ── BLOOM-specific components ──────────────────────────────────────────── */
+
+function BloomCrown({ s, si }: { s: S; si: number }) {
+  const topY = CY - s.ry
+
+  // Stage 0 — single seedling sprout
+  if (si === 0) {
+    return (
+      <g>
+        <line x1={CX} y1={topY + 2} x2={CX} y2={topY - 11}
+          stroke="#44B059" strokeWidth={1.5} strokeLinecap="round" />
+        <ellipse cx={CX - 3} cy={topY - 10}
+          rx={5.5} ry={2.8} fill="#5DC974"
+          transform={`rotate(-30,${CX - 3},${topY - 10})`} />
+        <ellipse cx={CX + 3.5} cy={topY - 7}
+          rx={4.5} ry={2.2} fill="#4AB864"
+          transform={`rotate(22,${CX + 3.5},${topY - 7})`} />
+      </g>
+    )
+  }
+
+  // Stage 1 — 3-leaf small crown
+  if (si === 1) {
+    const leaves = [
+      { dx: -10, sh: 13, tilt: -38, lrx: 5.5, lry: 2.8, c: '#4AB864' },
+      { dx:   0, sh: 16, tilt:   0, lrx: 6.2, lry: 3.2, c: '#5DC974' },
+      { dx:  10, sh: 13, tilt:  38, lrx: 5.5, lry: 2.8, c: '#4AB864' },
+    ]
+    return (
+      <g>
+        {leaves.map((l, i) => (
+          <g key={i}>
+            <line x1={CX + l.dx * 0.28} y1={topY + 2}
+              x2={CX + l.dx} y2={topY - l.sh}
+              stroke="#3EAF4D" strokeWidth={1.2} strokeLinecap="round" />
+            <ellipse cx={CX + l.dx} cy={topY - l.sh - l.lry * 0.6}
+              rx={l.lrx} ry={l.lry} fill={l.c}
+              transform={`rotate(${l.tilt},${CX + l.dx},${topY - l.sh - l.lry * 0.6})`} />
+          </g>
+        ))}
+      </g>
+    )
+  }
+
+  // Stage 2 — 5-leaf crown + small flower bud
+  if (si === 2) {
+    const leaves = [
+      { dx: -16, sh: 14, tilt: -48, lrx: 6,   lry: 3.2, c: '#3EAF4D' },
+      { dx:  -8, sh: 19, tilt: -22, lrx: 7,   lry: 3.8, c: '#4AB864' },
+      { dx:   0, sh: 22, tilt:   0, lrx: 7.8, lry: 4.2, c: '#5DC974' },
+      { dx:   8, sh: 19, tilt:  22, lrx: 7,   lry: 3.8, c: '#4AB864' },
+      { dx:  16, sh: 14, tilt:  48, lrx: 6,   lry: 3.2, c: '#3EAF4D' },
+    ]
+    return (
+      <g>
+        {leaves.map((l, i) => (
+          <g key={i}>
+            <line x1={CX + l.dx * 0.18} y1={topY + 2}
+              x2={CX + l.dx} y2={topY - l.sh}
+              stroke="#3EAF4D" strokeWidth={1.3} strokeLinecap="round" />
+            <ellipse cx={CX + l.dx} cy={topY - l.sh - l.lry * 0.55}
+              rx={l.lrx} ry={l.lry} fill={l.c}
+              transform={`rotate(${l.tilt},${CX + l.dx},${topY - l.sh - l.lry * 0.55})`} />
+          </g>
+        ))}
+        <circle cx={CX} cy={topY - 24} r={3.8} fill="#FBBF24" opacity={0.92} />
+        <circle cx={CX} cy={topY - 24} r={2}   fill="#F59E0B" opacity={0.9}  />
+      </g>
+    )
+  }
+
+  // Stage 3 — flower headpiece
+  if (si === 3) {
+    const leaves = [
+      { dx: -22, sh: 16, tilt: -58, lrx: 7,   lry: 4   },
+      { dx: -11, sh: 23, tilt: -26, lrx: 8.5, lry: 4.8 },
+      { dx:   0, sh: 27, tilt:   0, lrx: 9.5, lry: 5.2 },
+      { dx:  11, sh: 23, tilt:  26, lrx: 8.5, lry: 4.8 },
+      { dx:  22, sh: 16, tilt:  58, lrx: 7,   lry: 4   },
+    ]
+    const fy = topY - 30
+    const petals = [0, 60, 120, 180, 240, 300]
+    return (
+      <g>
+        {leaves.map((l, i) => (
+          <g key={i}>
+            <line x1={CX + l.dx * 0.18} y1={topY + 2}
+              x2={CX + l.dx} y2={topY - l.sh}
+              stroke="#3EAF4D" strokeWidth={1.5} strokeLinecap="round" />
+            <ellipse cx={CX + l.dx} cy={topY - l.sh - l.lry * 0.55}
+              rx={l.lrx} ry={l.lry} fill="#5DC974"
+              transform={`rotate(${l.tilt},${CX + l.dx},${topY - l.sh - l.lry * 0.55})`} />
+          </g>
+        ))}
+        {petals.map((deg, i) => {
+          const rad = deg * Math.PI / 180
+          const px  = CX + Math.cos(rad) * 8.5
+          const py  = fy + Math.sin(rad) * 8.5
+          return (
+            <ellipse key={i} cx={px} cy={py} rx={4.8} ry={3}
+              fill={i % 2 === 0 ? '#FFC0CB' : '#FFD1DC'}
+              transform={`rotate(${deg},${px},${py})`} />
+          )
+        })}
+        <circle cx={CX} cy={fy} r={5.5} fill="#FBBF24" />
+        <circle cx={CX} cy={fy} r={2.8} fill="#F59E0B" />
+      </g>
+    )
+  }
+
+  // Stage 4 — ancient tree / legendary form
+  const bY = topY - 16
+  const branches: [number, number, number, number, number][] = [
+    [-26, -24, -62, 8,  5],
+    [-13, -32, -28, 9,  5.5],
+    [  0, -36,   0, 11, 7],
+    [ 13, -32,  28, 9,  5.5],
+    [ 26, -24,  62, 8,  5],
+  ]
+  return (
+    <g>
+      <path d={`M${CX-2},${topY} C${CX-2},${bY-4} ${CX+1},${bY-10} ${CX},${bY-16}`}
+        fill="none" stroke="#7B5230" strokeWidth={3.5} strokeLinecap="round" />
+      {branches.map(([dx, dy, angle, lrx, lry], i) => (
+        <g key={i}>
+          <line x1={CX} y1={bY - 10} x2={CX + dx} y2={topY + dy}
+            stroke="#7B5230" strokeWidth={i === 2 ? 2.6 : 1.9} strokeLinecap="round" />
+          <ellipse cx={CX + dx} cy={topY + dy - 6}
+            rx={lrx} ry={lry} fill={i === 2 ? '#3EAF4D' : '#4AB864'} opacity={0.92}
+            transform={`rotate(${angle},${CX + dx},${topY + dy - 6})`} />
+        </g>
+      ))}
+      <motion.circle cx={CX} cy={topY - 44} r={6} fill="#6BDE82"
+        animate={{ r: [5.5, 7.5, 5.5], opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }} />
+      <motion.circle cx={CX} cy={topY - 44} r={11} fill="#6BDE82" opacity={0.18}
+        animate={{ r: [10, 14, 10], opacity: [0.12, 0.28, 0.12] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }} />
+    </g>
+  )
+}
+
+function BloomFeet({ s, si }: { s: S; si: number }) {
+  if (si < 1) return null
+  const fy  = CY + s.ry - 1
+  const fw  = s.rx * 0.25
+  const fh  = s.ry * 0.14
+  const lx  = CX - s.rx * 0.36
+  const rx  = CX + s.rx * 0.36
+  const col = si >= 3 ? '#3EAF4D' : s.c2
+  return (
+    <g>
+      <ellipse cx={lx} cy={fy} rx={fw} ry={fh + 1} fill={col} />
+      <ellipse cx={rx} cy={fy} rx={fw} ry={fh + 1} fill={col} />
+    </g>
+  )
+}
+
+function BloomBelt({ s, si }: { s: S; si: number }) {
+  if (si < 2) return null
+  const by = CY + s.ry * 0.28
+  return (
+    <g opacity={0.78}>
+      <path d={`M${CX - s.rx + 2},${by} A${s.rx - 2},${s.ry * 0.3} 0 0,0 ${CX + s.rx - 2},${by}`}
+        fill="none" stroke="#6B4226" strokeWidth={2.4} />
+      <rect x={CX - s.rx * 0.82} y={by - 2}
+        width={s.rx * 0.3} height={s.rx * 0.28} rx={2} fill="#8B6534" />
+      <rect x={CX + s.rx * 0.5}  y={by - 2}
+        width={s.rx * 0.26} height={s.rx * 0.24} rx={2} fill="#7B5A2E" />
+    </g>
+  )
+}
+
+function BloomStaff({ s, si }: { s: S; si: number }) {
+  if (si < 3) return null
+  const bx  = CX + s.rx + 3
+  const bot = CY + s.ry - 4
+  const top = CY - s.ry * 1.5
+  return (
+    <g opacity={0.88}>
+      <line x1={bx} y1={bot} x2={bx} y2={top}
+        stroke="#6B4226" strokeWidth={2.2} strokeLinecap="round" />
+      {/* Flower at tip */}
+      {[0, 72, 144, 216, 288].map((deg, i) => {
+        const rad = deg * Math.PI / 180
+        const px  = bx + Math.cos(rad) * 5.5
+        const py  = top + Math.sin(rad) * 5.5
+        return (
+          <ellipse key={i} cx={px} cy={py} rx={3.2} ry={2}
+            fill={i % 2 === 0 ? '#FFC0CB' : '#FFD1DC'}
+            transform={`rotate(${deg},${px},${py})`} />
+        )
+      })}
+      <circle cx={bx} cy={top} r={3.5} fill="#FBBF24" />
+      <circle cx={bx} cy={top} r={1.8} fill="#F59E0B" />
+    </g>
+  )
+}
+
+/* ── Generic accessories ────────────────────────────────────────────────── */
 
 function LeafSprouts({ s, si, enhanced }: { s: S; si: number; enhanced: boolean }) {
   const count  = Math.min(si + 2, 5)
@@ -133,7 +394,7 @@ function LeafSprouts({ s, si, enhanced }: { s: S; si: number; enhanced: boolean 
               stroke={ld} strokeWidth={1.2} strokeLinecap="round" />
             <ellipse cx={x + frac * 3} cy={topY - stemH - lry * 0.5}
               rx={lrx} ry={lry} fill={lc} opacity={0.9}
-              transform={`rotate(${frac * 30}, ${x + frac * 3}, ${topY - stemH - lry * 0.5})`} />
+              transform={`rotate(${frac * 30},${x + frac * 3},${topY - stemH - lry * 0.5})`} />
           </g>
         )
       })}
@@ -150,9 +411,9 @@ function Arms({ s, emotion }: { s: S; emotion: FlowlingEmotion }) {
   return (
     <>
       <ellipse cx={CX - s.rx - 2} cy={ay + lift} rx={aw} ry={ah} fill={s.c2}
-        transform={`rotate(${-rot}, ${CX - s.rx - 2}, ${ay + lift})`} />
+        transform={`rotate(${-rot},${CX - s.rx - 2},${ay + lift})`} />
       <ellipse cx={CX + s.rx + 2} cy={ay + lift} rx={aw} ry={ah} fill={s.c2}
-        transform={`rotate(${rot}, ${CX + s.rx + 2}, ${ay + lift})`} />
+        transform={`rotate(${rot},${CX + s.rx + 2},${ay + lift})`} />
     </>
   )
 }
@@ -381,7 +642,7 @@ function SpeciesFeature({ feature, s }: { feature: string; s: S }) {
               cx={CX + dx} cy={topY - fH * 0.35}
               rx={s.rx * 0.1} ry={fH * 0.52}
               fill={s.dark} opacity={0.65}
-              transform={`rotate(${dx > 0 ? 12 : dx < 0 ? -12 : 0}, ${CX + dx}, ${topY})`}
+              transform={`rotate(${dx > 0 ? 12 : dx < 0 ? -12 : 0},${CX + dx},${topY})`}
             />
           ))}
         </g>
@@ -408,30 +669,36 @@ export default function Flowling({
   const si      = lvl.stageIdx
   const s       = resolveS(si, species)
   const sp      = SPECIES[(species as SpeciesId)] ?? SPECIES.bloom
+  const isBloom = species === 'bloom'
 
-  const hasLeaves   = topAreaIndexes.includes(0)  // Salud
-  const hasGold     = topAreaIndexes.includes(3)  // Dinero
-  const hasBackpack = topAreaIndexes.includes(4)  // Trabajo
+  const hasLeaves   = topAreaIndexes.includes(0)
+  const hasGold     = topAreaIndexes.includes(3)
+  const hasBackpack = topAreaIndexes.includes(4)
   const hasFire     = streak >= 7
   const isGuardian  = si === 4
 
   const bodyAnim =
-    emotion === 'sleeping'    ? { y: [0, 3, 0], scale: [1, 1.025, 1] } :
-    emotion === 'celebrating' ? { y: [0, -11, 0, -6, 0] }              :
-    emotion === 'encouraging' ? { rotate: [-2, 2, -2] }                :
-                                { y: [0, -5, 0] }
+    emotion === 'sleeping'     ? { y: [0, 3, 0], scale: [1, 1.025, 1] } :
+    emotion === 'celebrating'  ? { y: [0, -11, 0, -6, 0] }              :
+    emotion === 'encouraging'  ? { rotate: [-2, 2, -2] }                :
+    emotion === 'concentrated' ? { y: [0, -1.5, 0] }                    :
+    emotion === 'tired'        ? { y: [0, 2, 0] }                       :
+                                 { y: [0, -5, 0] }
 
   const bodyDur =
-    emotion === 'sleeping'    ? 4   :
-    emotion === 'celebrating' ? 0.9 :
-    emotion === 'encouraging' ? 2   : 3.2
+    emotion === 'sleeping'     ? 4   :
+    emotion === 'celebrating'  ? 0.9 :
+    emotion === 'encouraging'  ? 2   :
+    emotion === 'concentrated' ? 4.5 :
+    emotion === 'tired'        ? 5.5 :
+    3.2
 
   const h   = SIZE_H[size]
   const w   = Math.round(h * (120 / 150))
   const gid = `bg${si}${species}`
 
-  const xpInLevel  = totalXp - lvl.minXp
-  const xpNeeded   = nextLvl ? nextLvl.minXp - lvl.minXp : 1
+  const xpInLevel   = totalXp - lvl.minXp
+  const xpNeeded    = nextLvl ? nextLvl.minXp - lvl.minXp : 1
   const progressPct = nextLvl ? Math.min(100, (xpInLevel / xpNeeded) * 100) : 100
 
   return (
@@ -450,7 +717,12 @@ export default function Flowling({
           </defs>
 
           {hasFire && <FireAura s={s} />}
-          {hasBackpack && si >= 2 && <Backpack s={s} />}
+
+          {/* Bloom staff goes behind body */}
+          {isBloom && <BloomStaff s={s} si={si} />}
+
+          {/* Generic backpack for non-bloom species */}
+          {!isBloom && hasBackpack && si >= 2 && <Backpack s={s} />}
 
           {/* Body */}
           <motion.ellipse cx={CX} cy={CY} rx={s.rx} ry={s.ry}
@@ -460,18 +732,27 @@ export default function Flowling({
           <ellipse cx={CX - s.rx * 0.2} cy={CY - s.ry * 0.3}
             rx={s.rx * 0.32} ry={s.ry * 0.2} fill="white" opacity={0.22} />
 
-          {/* Species feature */}
-          <SpeciesFeature feature={sp.feature} s={s} />
+          {/* Bloom feet (behind the body bottom edge) */}
+          {isBloom && <BloomFeet s={s} si={si} />}
 
-          {/* Bloom leaf sprouts (also appear as accessory for other species) */}
-          {(species === 'bloom' && si >= 0) && <LeafSprouts s={s} si={si} enhanced={hasLeaves} />}
-          {(species !== 'bloom' && hasLeaves && si >= 1) && <LeafSprouts s={s} si={si} enhanced={true} />}
+          {/* Bloom belt / seed pouch */}
+          {isBloom && <BloomBelt s={s} si={si} />}
+
+          {/* Species feature or Bloom crown */}
+          {isBloom
+            ? <BloomCrown s={s} si={si} />
+            : <SpeciesFeature feature={sp.feature} s={s} />
+          }
+
+          {/* Leaf sprouts for non-bloom species with leaf area unlocked */}
+          {!isBloom && hasLeaves && si >= 1 && <LeafSprouts s={s} si={si} enhanced={true} />}
 
           {si >= 2 && <Arms s={s} emotion={emotion} />}
           <Blush s={s} />
-          <Eyes s={s} emotion={emotion} />
+          <Eyes s={s} emotion={emotion} speciesId={species} />
           <Mouth s={s} emotion={emotion} />
-          {hasBackpack && si >= 2 && <Glasses s={s} />}
+
+          {!isBloom && hasBackpack && si >= 2 && <Glasses s={s} />}
           {hasGold && si >= 1 && <GoldCoins s={s} />}
           {emotion === 'sleeping'    && <SleepZzz s={s} />}
           {emotion === 'celebrating' && <CelebrationStars s={s} />}
