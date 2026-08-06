@@ -5,10 +5,10 @@ import { motion, AnimatePresence } from 'motion/react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { DEFAULT_AREAS } from '@/lib/areas/defaults'
-import AvatarStar from '@/components/AvatarStar'
+import EggHatch from '@/components/EggHatch'
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
-const TOTAL_STEPS = 3
+const TOTAL_STEPS = 3  // El paso 4 (huevo) no se cuenta en la barra
 
 interface AreaSetup {
   name: string
@@ -69,6 +69,16 @@ export default function SetupAreasPage() {
   const [diagIndex, setDiagIndex] = useState(0)
   const [saving, setSaving] = useState(false)
   const router = useRouter()
+
+  // Top areas by diagnostic score — se pasa al Flowling para accesorios
+  const topAreaIndexes = [...areas]
+    .map((_, i) => ({
+      i,
+      score: Math.round(areas[i].answers.reduce((s, v) => s + v, 0) / areas[i].answers.length),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(a => a.i)
 
   const updateAreaName = (i: number, name: string) => {
     setAreas(prev => prev.map((a, idx) => idx === i ? { ...a, name } : a))
@@ -136,8 +146,7 @@ export default function SetupAreasPage() {
       level:    1,
     }, { onConflict: 'user_id' })
 
-    router.push('/app')
-    router.refresh()
+    setStep(4)  // Muestra el huevo — el router.push lo hace EggHatch al terminar
   }
 
   const currentArea = areas[diagIndex]
@@ -153,7 +162,17 @@ export default function SetupAreasPage() {
         }
       `}</style>
 
-      <div style={{ width: '100%', maxWidth: '520px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+      {/* PASO 4 — Huevo eclosionando (pantalla completa, sin barra de progreso) */}
+      {step === 4 && (
+        <div style={{ width: '100%', maxWidth: '520px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <EggHatch
+            topAreaIndexes={topAreaIndexes}
+            onComplete={() => { router.push('/app'); router.refresh() }}
+          />
+        </div>
+      )}
+
+      <div style={{ width: '100%', maxWidth: '520px', flex: 1, display: step === 4 ? 'none' : 'flex', flexDirection: 'column' }}>
 
         {/* Progress bar */}
         <div style={{ padding: '1.5rem 1.5rem 0' }}>
@@ -318,7 +337,7 @@ export default function SetupAreasPage() {
                       marginBottom: '1rem',
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                        <AvatarStar xp={0} color={currentArea.color} emoji={currentArea.emoji} size="sm" />
+                        <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: `${currentArea.color}20`, border: `1.5px solid ${currentArea.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>{currentArea.emoji}</div>
                         <div style={{ flex: 1 }}>
                           <p style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1px' }}>
                             {currentArea.name}
