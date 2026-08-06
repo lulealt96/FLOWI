@@ -32,11 +32,12 @@ interface Props {
   countByProject: Record<string, number>
   userId: string
   userAvatar: { total_xp: number; level: number; last_seen_at: string } | null
+  species: string
   topAreaIndexes: number[]
   streak: number
 }
 
-export default function AreaDetailClient({ area, projects, avatar, evaluations, countByProject, userId, userAvatar, topAreaIndexes, streak }: Props) {
+export default function AreaDetailClient({ area, projects, avatar, evaluations, countByProject, userId, userAvatar, species, topAreaIndexes, streak }: Props) {
   const totalXp = userAvatar?.total_xp ?? 0
 
   const emotion: FlowlingEmotion = (() => {
@@ -135,6 +136,7 @@ export default function AreaDetailClient({ area, projects, avatar, evaluations, 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
             <Flowling
               totalXp={totalXp}
+              species={species}
               topAreaIndexes={topAreaIndexes}
               streak={streak}
               emotion={emotion}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -60,6 +60,7 @@ function QuestionSlider({ question, value, color, onChange }: {
 
 export default function SetupAreasPage() {
   const [step, setStep] = useState(1)
+  const [species, setSpecies] = useState('bloom')
   const [areas, setAreas] = useState<AreaSetup[]>(
     DEFAULT_AREAS.map(a => ({
       ...a,
@@ -69,6 +70,15 @@ export default function SetupAreasPage() {
   const [diagIndex, setDiagIndex] = useState(0)
   const [saving, setSaving] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('user_avatars').select('species').eq('user_id', user.id).single()
+        .then(({ data }) => { if (data?.species) setSpecies(data.species) })
+    })
+  }, [])
 
   // Top areas by diagnostic score — se pasa al Flowling para accesorios
   const topAreaIndexes = [...areas]
@@ -167,6 +177,7 @@ export default function SetupAreasPage() {
         <div style={{ width: '100%', maxWidth: '520px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <EggHatch
             topAreaIndexes={topAreaIndexes}
+            species={species}
             onComplete={() => { router.push('/app'); router.refresh() }}
           />
         </div>

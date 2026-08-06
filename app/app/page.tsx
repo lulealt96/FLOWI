@@ -29,7 +29,7 @@ export default async function DashboardPage() {
   // Avatar global del usuario (Flowling)
   const { data: userAvatar } = await supabase
     .from('user_avatars')
-    .select('total_xp, level, last_seen_at')
+    .select('total_xp, level, last_seen_at, species')
     .eq('user_id', user.id)
     .single()
 
@@ -114,6 +114,7 @@ export default async function DashboardPage() {
       countByProject={countByProject}
       waNumber={process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY_NUMBER ?? '15556660581'}
       userAvatar={userAvatar ?? null}
+      species={userAvatar?.species ?? 'bloom'}
       topAreaIndexes={topAreaIndexes}
     />
   )

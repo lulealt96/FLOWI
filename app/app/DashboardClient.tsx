@@ -24,6 +24,7 @@ interface Props {
   countByProject: Record<string, number>
   waNumber: string
   userAvatar: { total_xp: number; level: number; last_seen_at: string } | null
+  species: string
   topAreaIndexes: number[]
 }
 
@@ -74,7 +75,7 @@ function flowlingMessage(emotion: FlowlingEmotion, name: string): string {
 export default function DashboardClient({
   userName, areas, latestEvalByArea, xpByArea,
   streak, urgentTasks, projects, countByProject, waNumber,
-  userAvatar, topAreaIndexes,
+  userAvatar, species, topAreaIndexes,
 }: Props) {
   const firstName    = userName.split(' ')[0]
   const totalPending = Object.values(countByProject).reduce((s, n) => s + n, 0)
@@ -169,6 +170,7 @@ export default function DashboardClient({
 
               <Flowling
                 totalXp={totalXp}
+                species={species}
                 topAreaIndexes={topAreaIndexes}
                 streak={streak.current_streak}
                 emotion={emotion}

@@ -6,6 +6,7 @@ import Flowling from './Flowling'
 
 interface Props {
   topAreaIndexes: number[]
+  species?: string
   streak?: number
   onComplete: () => void
 }
@@ -147,7 +148,7 @@ function EggBreaking() {
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-export default function EggHatch({ topAreaIndexes, streak = 0, onComplete }: Props) {
+export default function EggHatch({ topAreaIndexes, species = 'bloom', streak = 0, onComplete }: Props) {
   const [phase, setPhase] = useState<0|1|2|3|4|5>(0)
 
   useEffect(() => {
@@ -247,6 +248,7 @@ export default function EggHatch({ topAreaIndexes, streak = 0, onComplete }: Pro
             >
               <Flowling
                 totalXp={0}
+                species={species}
                 topAreaIndexes={topAreaIndexes}
                 streak={streak}
                 emotion="celebrating"

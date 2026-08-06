@@ -35,7 +35,7 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
   // Global Flowling avatar
   const { data: userAvatar } = await supabase
     .from('user_avatars')
-    .select('total_xp, level, last_seen_at')
+    .select('total_xp, level, last_seen_at, species')
     .eq('user_id', user.id)
     .single()
 
@@ -98,6 +98,7 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
       countByProject={countByProject}
       userId={user.id}
       userAvatar={userAvatar ?? null}
+      species={userAvatar?.species ?? 'bloom'}
       topAreaIndexes={topAreaIndexes}
       streak={streak?.current_streak ?? 0}
     />

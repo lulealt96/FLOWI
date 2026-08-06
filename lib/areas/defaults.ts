@@ -15,13 +15,10 @@ export const DEFAULT_AREAS: AreaDefault[] = [
     description: 'Bienestar físico, energía, alimentación y ejercicio',
     order_index: 0,
     questions: [
-      'Estoy conforme con mi apariencia',
       'Siento un buen nivel de energía',
-      'Mi peso y masa corporal son adecuados',
       'Procuro tener una dieta equilibrada',
-      'Me caracteriza la resistencia y perseverancia',
       'Mi estado de salud es bueno',
-      'Soy mi palabra en cuanto a mi salud',
+      'Me caracteriza la resistencia y perseverancia',
     ],
   },
   {
@@ -31,14 +28,10 @@ export const DEFAULT_AREAS: AreaDefault[] = [
     description: 'Crecimiento, aprendizaje, valores y propósito',
     order_index: 1,
     questions: [
-      'Soy coherente en lo que pienso, digo y hago',
       'Dedico tiempo a mi crecimiento personal',
       'Invierto en mí misma',
-      'Disfruto momentos de tranquilidad y paz',
-      'Actúo basada en principios y valores',
       'Tengo buena imagen de mí misma y autoestima',
       'Manejo adecuadamente el estrés',
-      'Soy mi palabra en desarrollo personal',
     ],
   },
   {
@@ -50,12 +43,8 @@ export const DEFAULT_AREAS: AreaDefault[] = [
     questions: [
       'Separo el tiempo adecuado para la familia',
       'Mi relación de pareja es satisfactoria',
-      'La relación con mis padres es buena',
       'Hay buena relación con los amigos',
       'Tengo buena comunicación con mis seres queridos',
-      'Siento que mi familia tiene una buena vida',
-      'En la familia soy fuente de unión',
-      'Soy mi palabra en mis relaciones',
     ],
   },
   {
@@ -65,14 +54,10 @@ export const DEFAULT_AREAS: AreaDefault[] = [
     description: 'Ingresos, ahorros, inversiones y presupuesto',
     order_index: 3,
     questions: [
-      'Gano lo suficiente para una vida tranquila',
       'Tengo una economía sana',
       'Mi presupuesto personal está bien administrado',
-      'Llevo un buen control de compras grandes',
-      'Administro bien las compras del día a día',
       'Mis gastos son menores a mis ingresos',
       'Puedo ahorrar mensualmente',
-      'Soy mi palabra en mis finanzas',
     ],
   },
   {
@@ -82,13 +67,10 @@ export const DEFAULT_AREAS: AreaDefault[] = [
     description: 'Carrera, proyectos profesionales y formación',
     order_index: 4,
     questions: [
-      'Genero posibilidades de desarrollo',
       'Mi trabajo y/o carrera son estimulantes',
-      'Trabajo en un lugar que me gusta',
       'Mi ambiente de trabajo es agradable',
       'Siento que valoran mis capacidades',
       'Me preparo continuamente para crecer',
-      'Soy mi palabra en mi trabajo y carrera',
     ],
   },
   {
@@ -99,12 +81,9 @@ export const DEFAULT_AREAS: AreaDefault[] = [
     order_index: 5,
     questions: [
       'Tengo amistades de calidad',
-      'Cuido a mis amistades',
       'Cuento con gente en quien puedo confiar',
-      'Participo en la comunidad y trabajos sociales',
       'Aporto a otras personas y trasciendo',
-      'Soy responsable con el medio ambiente',
-      'Soy equipo con quienes me rodean',
+      'Participo en la comunidad y trabajos sociales',
     ],
   },
   {
@@ -115,13 +94,9 @@ export const DEFAULT_AREAS: AreaDefault[] = [
     order_index: 6,
     questions: [
       'Dedico tiempo para recrearme y entretenerme',
-      'Hago ejercicio o deporte de forma continua',
       'Practico algún hobby',
-      'Disfruto la lectura, cine, teatro o cultura',
       'Logro desconectarme del trabajo en mi tiempo libre',
       'Puedo tener paz y tranquilidad',
-      'Disfruto mi tiempo libre y mi soledad',
-      'Soy mi palabra en mi recreación',
     ],
   },
   {
@@ -133,11 +108,8 @@ export const DEFAULT_AREAS: AreaDefault[] = [
     questions: [
       'Tengo claras mis metas',
       'Soy coherente en mi vida con mis valores',
-      'Busco actividades para mi crecimiento personal',
-      'Trabajo mis puntos débiles',
       'Vivo en confianza y gratitud',
-      'Me ocupo del crecimiento de los míos',
-      'Soy mi palabra en mi espiritualidad',
+      'Busco actividades para mi crecimiento personal',
     ],
   },
 ]
