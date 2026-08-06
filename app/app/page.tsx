@@ -112,7 +112,7 @@ export default async function DashboardPage() {
       urgentTasks={urgentTasks ?? []}
       projects={projects ?? []}
       countByProject={countByProject}
-      waNumber={process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY_NUMBER ?? '15556660581'}
+      waNumber={process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY_NUMBER ?? '573015322872'}
       userAvatar={userAvatar ?? null}
       species={userAvatar?.species ?? 'bloom'}
       topAreaIndexes={topAreaIndexes}

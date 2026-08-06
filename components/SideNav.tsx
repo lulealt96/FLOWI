@@ -67,7 +67,7 @@ export default function SideNav({ waNumber }: { waNumber?: string }) {
       {/* WhatsApp CTA */}
       <div style={{ padding: '1rem 0.75rem 1.75rem' }}>
         <a
-          href={`https://wa.me/${waNumber ?? '15556660581'}`}
+          href={`https://wa.me/${waNumber ?? '573015322872'}`}
           target="_blank"
           rel="noopener noreferrer"
           style={{ textDecoration: 'none' }}

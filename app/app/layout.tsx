@@ -8,7 +8,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY_NUMBER ?? '15556660581'
+  const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY_NUMBER ?? '573015322872'
 
   return (
     <>
