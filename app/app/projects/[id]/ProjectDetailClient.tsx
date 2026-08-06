@@ -124,6 +124,13 @@ export default function ProjectDetailClient({ project: initialProject, tasks: in
     const next: Status = task.status === 'done' ? 'todo' : 'done'
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: next } : t))
     await createClient().from('tasks').update({ status: next }).eq('id', task.id)
+    if (next === 'done') {
+      fetch('/api/xp/award', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task.id }),
+      }).catch(() => {})
+    }
     setToggling(null)
   }
 

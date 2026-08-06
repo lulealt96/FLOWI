@@ -70,8 +70,14 @@ export default function TasksClient({ tasks: initial, projects }: { tasks: Task[
     setToggling(task.id)
     const next: Status = task.status === 'done' ? 'todo' : 'done'
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: next } : t))
-    const supabase = createClient()
-    await supabase.from('tasks').update({ status: next }).eq('id', task.id)
+    await createClient().from('tasks').update({ status: next }).eq('id', task.id)
+    if (next === 'done') {
+      fetch('/api/xp/award', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task.id }),
+      }).catch(() => {})
+    }
     setToggling(null)
   }
 
