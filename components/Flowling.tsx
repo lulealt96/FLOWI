@@ -427,7 +427,7 @@ function GenCelebStars({ s }: { s: S }) {
 const BCX = 200   // center x in Bloom's 400×450 space
 const BCY = 250   // center y in Bloom's 400×450 space
 
-// Body sizes per stage (rx, ry) in 400×450 units
+// Body sizes per stage (rx, ry) in 400×450 units — used for face overlay coords
 const BLOOM_BODY_SIZES = [
   { rx:115, ry:130 },  // stage 0 — exact match to provided SVG
   { rx:128, ry:144 },  // stage 1
@@ -435,6 +435,9 @@ const BLOOM_BODY_SIZES = [
   { rx:160, ry:180 },  // stage 3
   { rx:180, ry:204 },  // stage 4
 ]
+
+// CSS scale applied to PNG per stage (derived from rx ratio vs stage 0)
+const BLOOM_PNG_SCALE = [1, 1.11, 1.24, 1.39, 1.57]
 
 // Parameterized face values derived from stage 0 proportions
 function bloomFace(si: number) {
@@ -929,45 +932,56 @@ export default function Flowling({
         transition={{ repeat:Infinity, duration:bodyDur, ease:'easeInOut', repeatType:'reverse' }}
       >
         {isBloom ? (
-          /* ══ BLOOM: structured 400×450 SVG with modular slots ══ */
-          <svg viewBox="0 0 400 450" width={w} height={h} xmlns="http://www.w3.org/2000/svg">
-            <BloomDefs400 si={si} />
+          /* ══ BLOOM: PNG base + SVG face overlay ══ */
+          <div style={{ position: 'relative', width: w, height: h }}>
 
-            {/* Ground shadow */}
-            <BloomGroundShadow si={si} />
+            {/* Scale wrapper — PNG and face overlay scale together per stage */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              transform: si > 0 ? `scale(${BLOOM_PNG_SCALE[si]})` : undefined,
+              transformOrigin: 'center bottom',
+            }}>
+              {/* PNG base */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/Flowlings/bloom/base.png"
+                alt="Bloom"
+                draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', userSelect: 'none' }}
+              />
 
-            {/* SLOT: back accessory (cape, wings, etc.) */}
-            <g id="slot-back" />
+              {/* SVG overlay: face + effects + accessory slots (transparent bg) */}
+              <svg
+                viewBox="0 0 400 450"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+              >
+                <BloomDefs400 si={si} />
+                <g id="slot-back" />
+                {hasFire && <BloomFireAura400 si={si} />}
+                <BloomFace400 si={si} emotion={emotion} />
+                {emotion === 'sleeping'    && <BloomSleepZzz400 si={si} />}
+                {emotion === 'celebrating' && <BloomCelebStars400 si={si} />}
+                <g id="slot-headpiece"      />
+                <g id="slot-face-accessory" />
+                <g id="slot-body-accessory" />
+                <g id="slot-hand-holding"   />
+                <g id="slot-aura"           />
+              </svg>
+            </div>
 
-            {/* Fire aura (streak ≥7) */}
-            {hasFire && <BloomFireAura400 si={si} />}
-
-            {/* Feet (behind body) */}
-            <BloomFeet400 si={si} />
-
-            {/* Body */}
-            <BloomBody400 si={si} />
-
-            {/* Arms */}
-            <BloomArms400 si={si} emotion={emotion} />
-
-            {/* Crown / sprout */}
-            <BloomCrown400 si={si} />
-
-            {/* Face — blush, eyes, mouth */}
-            <BloomFace400 si={si} emotion={emotion} />
-
-            {/* Sleep Zzz */}
-            {emotion === 'sleeping'    && <BloomSleepZzz400 si={si} />}
-            {emotion === 'celebrating' && <BloomCelebStars400 si={si} />}
-
-            {/* Modular slots for dynamic injection */}
-            <g id="slot-headpiece"       />
-            <g id="slot-face-accessory"  />
-            <g id="slot-body-accessory"  />
-            <g id="slot-hand-holding"    />
-            <g id="slot-aura"            />
-          </svg>
+            {/* Evolution glow — visually indicates stages 2-4 */}
+            {si >= 2 && (
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: `radial-gradient(ellipse 60% 50% at 50% 52%, ${
+                  si === 2 ? 'rgba(74,222,128,0.14)' :
+                  si === 3 ? 'rgba(74,222,128,0.24)' :
+                             'rgba(134,239,172,0.34)'
+                } 0%, transparent 72%)`,
+              }} />
+            )}
+          </div>
 
         ) : (
           /* ══ GENERIC SPECIES: 120×150 SVG ══ */
