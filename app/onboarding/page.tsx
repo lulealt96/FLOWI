@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -10,6 +10,7 @@ import EggHatch from '@/components/EggHatch'
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
 const TOTAL_STEPS = 4  // nombre, quiz, áreas, whatsapp (huevo no cuenta en barra)
+const STEP_LABELS = ['Nombre', 'Tu tipo', 'Áreas', 'WhatsApp']
 
 interface AreaSetup {
   name: string; emoji: string; color: string; description: string
@@ -60,6 +61,7 @@ export default function OnboardingPage() {
   const [quizAnswers, setQuizAnswers] = useState<number[]>([-1, -1, -1, -1])
   const [quizQ, setQuizQ]             = useState(0)
   const [selectedSpecies, setSelected] = useState<SpeciesId | ''>('')
+  const [flowlingName, setFlowlingName] = useState('')
 
   // Diagnóstico de áreas (step 3)
   const [areas]        = useState<AreaSetup[]>(DEFAULT_AREAS.map(a => ({ ...a, answers: a.questions.map(() => 70) })))
@@ -74,6 +76,16 @@ export default function OnboardingPage() {
   const [topAreaIndexes, setTopAreaIndexes] = useState<number[]>([])
 
   const router = useRouter()
+
+  // Pre-fill name from auth metadata (Google OAuth or prior registration)
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.user_metadata?.full_name) {
+        setName(user.user_metadata.full_name)
+      }
+    })
+  }, [])
 
   // ── Quiz helpers ─────────────────────────────────────────────────────────
   const quizResults = quizAnswers.every(a => a >= 0) ? computeQuizResult(quizAnswers) : []
@@ -122,9 +134,10 @@ export default function OnboardingPage() {
       updated_at: new Date().toISOString(),
     }).eq('id', user.id)
 
-    // Avatar global con especie
+    // Avatar global con especie y nombre personalizado
+    const finalFlowlingName = flowlingName.trim() || SPECIES_LIST.find(s => s.id === species)?.name || 'Bloom'
     await supabase.from('user_avatars').upsert(
-      { user_id: user.id, species, total_xp: 0, level: 1 },
+      { user_id: user.id, species, total_xp: 0, level: 1, flowling_name: finalFlowlingName },
       { onConflict: 'user_id' }
     )
 
@@ -154,10 +167,10 @@ export default function OnboardingPage() {
     )
 
     if (waPhone.trim()) {
-      const flowlingName = SPECIES_LIST.find(s => s.id === species)?.name ?? 'Bloom'
+      const fName = flowlingName.trim() || SPECIES_LIST.find(s => s.id === species)?.name || 'Bloom'
       fetch('/api/whatsapp/welcome', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: waPhone.trim(), name: name.trim() || 'amiga', flowlingName }),
+        body: JSON.stringify({ phone: waPhone.trim(), name: name.trim() || 'amiga', flowlingName: fName }),
       }).catch(() => {})
     }
 
@@ -194,20 +207,44 @@ export default function OnboardingPage() {
       {step < 5 && (
         <div className="w-full flex flex-col flex-1" style={{ maxWidth: '480px' }}>
 
-          {/* Progress bar */}
-          <div style={{ padding: '1.5rem 1.5rem 0' }}>
-            <div className="flex items-center gap-2 mb-1">
-              {Array.from({ length: TOTAL_STEPS }).map((_, s) => (
-                <div key={s} style={{
-                  flex: 1, height: '3px', borderRadius: '99px',
-                  background: s + 1 <= step ? 'var(--brand-primary)' : 'var(--border-default)',
-                  transition: 'background 0.4s ease',
-                }} />
-              ))}
+          {/* Step indicator */}
+          <div style={{ padding: '1.25rem 1.5rem 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {STEP_LABELS.map((label, i) => {
+                const n = i + 1
+                const isCompleted = n < step
+                const isCurrent   = n === step
+                return (
+                  <div key={n} style={{ display: 'flex', alignItems: 'center', flex: n < TOTAL_STEPS ? 1 : 0 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <div style={{
+                        width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
+                        background: isCompleted || isCurrent ? 'var(--brand-primary)' : 'transparent',
+                        border: `2px solid ${isCompleted || isCurrent ? 'var(--brand-primary)' : 'var(--border-strong)'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.3s ease',
+                      }}>
+                        {isCompleted ? (
+                          <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+                            <path d="M1 4L4 7L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        ) : (
+                          <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: isCurrent ? 'white' : 'var(--text-tertiary)' }}>
+                            {n}
+                          </span>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '0.5625rem', fontWeight: 600, color: isCurrent ? 'var(--brand-primary)' : 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
+                        {label}
+                      </span>
+                    </div>
+                    {n < TOTAL_STEPS && (
+                      <div style={{ flex: 1, height: '2px', background: n < step ? 'var(--brand-primary)' : 'var(--border-default)', transition: 'background 0.4s ease', marginBottom: '18px', marginLeft: '4px', marginRight: '4px' }} />
+                    )}
+                  </div>
+                )
+              })}
             </div>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>
-              Paso {step} de {TOTAL_STEPS}
-            </p>
           </div>
 
           <div className="flex-1 flex flex-col" style={{ padding: '0 1.5rem 2rem' }}>
@@ -384,6 +421,42 @@ export default function OnboardingPage() {
                           })}
                         </div>
 
+                        {/* Flowling name — aparece al elegir especie */}
+                        <AnimatePresence>
+                          {selectedSpecies && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3, ease: EASE }}
+                              style={{ overflow: 'hidden', paddingTop: '0.75rem' }}
+                            >
+                              <div style={{ background: 'var(--surface-secondary)', borderRadius: 'var(--radius-lg)', padding: '1rem' }}>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '0.5rem' }}>
+                                  ¿Cómo le llamas a tu {SPECIES_LIST.find(s => s.id === selectedSpecies)?.name}? ✨
+                                </label>
+                                <input
+                                  type="text"
+                                  value={flowlingName}
+                                  onChange={e => setFlowlingName(e.target.value)}
+                                  placeholder={SPECIES_LIST.find(s => s.id === selectedSpecies)?.name ?? ''}
+                                  maxLength={24}
+                                  style={{
+                                    width: '100%', height: '44px', padding: '0 0.875rem',
+                                    borderRadius: 'var(--radius-md)', border: '1.5px solid var(--border-default)',
+                                    background: 'var(--surface-primary)', color: 'var(--text-primary)',
+                                    fontSize: '0.9375rem', fontFamily: 'var(--font-sans)', outline: 'none',
+                                  }}
+                                  onFocus={e => (e.target.style.borderColor = 'var(--brand-primary)')}
+                                  onBlur={e => (e.target.style.borderColor = 'var(--border-default)')}
+                                />
+                                <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                                  Puedes cambiarlo luego. Si lo dejas vacío usamos el nombre de la especie.
+                                </p>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
                         <div style={{ paddingTop: '1rem' }}>
                           <motion.button whileTap={{ scale: 0.97 }} onClick={() => setStep(3)} disabled={!selectedSpecies}
                             style={{
@@ -394,7 +467,9 @@ export default function OnboardingPage() {
                               border: 'none', cursor: selectedSpecies ? 'pointer' : 'not-allowed', transition: 'all 0.2s ease',
                             }}
                           >
-                            {selectedSpecies ? `Continuar con ${SPECIES_LIST.find(s => s.id === selectedSpecies)?.name} →` : 'Elige tu compañero'}
+                            {selectedSpecies
+                              ? `Continuar con ${flowlingName.trim() || SPECIES_LIST.find(s => s.id === selectedSpecies)?.name} →`
+                              : 'Elige tu compañero'}
                           </motion.button>
                         </div>
                       </motion.div>

@@ -2,15 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { House, Star, FolderSimple, CheckSquare, Bell, Gear, WhatsappLogo } from '@phosphor-icons/react'
+import { House, Star, Bell, Gear, WhatsappLogo } from '@phosphor-icons/react'
 
 const NAV = [
-  { href: '/app',           label: 'Inicio',         Icon: House        },
-  { href: '/app/areas',     label: 'Mis áreas',      Icon: Star         },
-  { href: '/app/projects',  label: 'Proyectos',      Icon: FolderSimple },
-  { href: '/app/tasks',     label: 'Tareas',         Icon: CheckSquare  },
-  { href: '/app/reminders', label: 'Recordatorios',  Icon: Bell         },
-  { href: '/app/settings',  label: 'Ajustes',        Icon: Gear         },
+  { href: '/app',           label: 'Inicio',         Icon: House },
+  { href: '/app/areas',     label: 'Mis áreas',      Icon: Star  },
+  { href: '/app/reminders', label: 'Recordatorios',  Icon: Bell  },
+  { href: '/app/settings',  label: 'Ajustes',        Icon: Gear  },
 ]
 
 export default function SideNav({ waNumber }: { waNumber?: string }) {

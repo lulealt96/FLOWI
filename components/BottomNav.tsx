@@ -1,19 +1,30 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
-import Link from 'next/link'
-import { House, Star, FolderSimple, CheckSquare, Gear } from '@phosphor-icons/react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useTransition, useState, useEffect } from 'react'
+import { House, Star, Gear } from '@phosphor-icons/react'
 
 const NAV = [
-  { href: '/app',          label: 'Inicio',    Icon: House        },
-  { href: '/app/areas',    label: 'Áreas',     Icon: Star         },
-  { href: '/app/projects', label: 'Proyectos', Icon: FolderSimple },
-  { href: '/app/tasks',    label: 'Tareas',    Icon: CheckSquare  },
-  { href: '/app/settings', label: 'Ajustes',   Icon: Gear         },
+  { href: '/app',       label: 'Inicio',  Icon: House },
+  { href: '/app/areas', label: 'Áreas',   Icon: Star  },
+  { href: '/app/settings', label: 'Ajustes', Icon: Gear },
 ]
 
 export default function BottomNav() {
   const pathname = usePathname()
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [pendingHref, setPendingHref] = useState<string | null>(null)
+
+  useEffect(() => {
+    setPendingHref(null)
+  }, [pathname])
+
+  function handleNav(href: string) {
+    if (pathname === href) return
+    setPendingHref(href)
+    startTransition(() => { router.push(href) })
+  }
 
   return (
     <nav style={{
@@ -37,26 +48,40 @@ export default function BottomNav() {
     }}>
       {NAV.map(({ href, label, Icon }) => {
         const isActive = pathname === href || (href !== '/app' && pathname.startsWith(href))
+        const isLoading = pendingHref === href && isPending
         return (
-          <Link
+          <button
             key={href}
-            href={href}
+            onClick={() => handleNav(href)}
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               gap: '3px',
-              padding: '6px 12px',
+              padding: '6px 20px',
               borderRadius: 'var(--radius-md)',
-              textDecoration: 'none',
-              transition: 'all var(--transition-fast)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              position: 'relative',
+              transition: 'opacity 0.15s',
+              opacity: isLoading ? 0.6 : 1,
             }}
           >
-            <Icon
-              weight={isActive ? 'fill' : 'regular'}
-              size={22}
-              color={isActive ? 'var(--brand-primary)' : 'var(--text-tertiary)'}
-            />
+            {isLoading ? (
+              <div style={{
+                width: '22px', height: '22px', borderRadius: '50%',
+                border: '2.5px solid var(--border-default)',
+                borderTopColor: 'var(--brand-primary)',
+                animation: 'spin 0.7s linear infinite',
+              }} />
+            ) : (
+              <Icon
+                weight={isActive ? 'fill' : 'regular'}
+                size={22}
+                color={isActive ? 'var(--brand-primary)' : 'var(--text-tertiary)'}
+              />
+            )}
             <span style={{
               fontSize: '0.625rem',
               fontWeight: isActive ? 600 : 400,
@@ -65,9 +90,10 @@ export default function BottomNav() {
             }}>
               {label}
             </span>
-          </Link>
+          </button>
         )
       })}
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </nav>
   )
 }

@@ -51,37 +51,40 @@ export default async function AreasPage() {
         </p>
       </div>
 
-      <div style={{ padding: '0 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{
+        padding: '0 1.5rem',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '0.75rem',
+      }}>
         {(areas ?? []).map(area => {
           const xp = xpByArea[area.id] ?? 0
-          const avatarLevel = getAvatarLevel(xp)
           const score = latestEval[area.id] ?? 0
 
           return (
             <Link key={area.id} href={`/app/areas/${area.id}`} style={{ textDecoration: 'none' }}>
               <div style={{
                 background: 'var(--surface-primary)', borderRadius: 'var(--radius-xl)',
-                padding: '1.125rem 1.25rem', border: '1px solid var(--border-default)',
-                display: 'flex', alignItems: 'center', gap: '1rem',
-                borderLeft: `4px solid ${area.color}`,
+                padding: '1.125rem 1rem', border: '1px solid var(--border-default)',
+                display: 'flex', flexDirection: 'column', gap: '0.625rem',
+                borderTop: `3px solid ${area.color}`,
                 boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
+                minHeight: '130px',
               }}>
-                <AvatarStar xp={xp} color={area.color} emoji={area.emoji} size="sm" showLevel />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '2px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '1.625rem', lineHeight: 1 }}>{area.emoji}</span>
+                  <span style={{ fontSize: '1.25rem', fontWeight: 900, color: area.color, lineHeight: 1 }}>{score}</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '2px', lineHeight: 1.2 }}>
                     {area.name}
                   </p>
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {area.description}
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>
+                    /100
                   </p>
-                  {/* Score bar */}
-                  <div style={{ marginTop: '8px', height: '4px', borderRadius: '99px', background: 'var(--surface-secondary)', overflow: 'hidden', maxWidth: '160px' }}>
-                    <div style={{ height: '100%', borderRadius: '99px', background: area.color, width: `${score}%`, transition: 'width 0.6s ease' }} />
-                  </div>
                 </div>
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <p style={{ fontSize: '1.5rem', fontWeight: 900, color: area.color, lineHeight: 1 }}>{score}</p>
-                  <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/100</p>
+                <div style={{ height: '4px', borderRadius: '99px', background: 'var(--surface-secondary)', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', borderRadius: '99px', background: area.color, width: `${score}%` }} />
                 </div>
               </div>
             </Link>
