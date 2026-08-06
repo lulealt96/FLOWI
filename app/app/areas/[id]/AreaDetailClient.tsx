@@ -7,11 +7,19 @@ import { useRouter } from 'next/navigation'
 import { ChevronLeft, Plus, FolderOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import AvatarStar from '@/components/AvatarStar'
-import { getAvatarLevel, getNextLevel, AVATAR_LEVELS } from '@/lib/areas/defaults'
+import { getAvatarLevel, getNextLevel, AVATAR_LEVELS, DEFAULT_AREAS } from '@/lib/areas/defaults'
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
-interface Area { id: string; name: string; emoji: string; color: string; description: string }
+function scoreLabel(v: number) {
+  if (v < 40) return 'Por mejorar'
+  if (v < 60) return 'Regular'
+  if (v < 75) return 'Bien'
+  if (v < 90) return 'Muy bien'
+  return 'Excelente'
+}
+
+interface Area { id: string; name: string; emoji: string; color: string; description: string; order_index: number }
 interface Project { id: string; name: string; emoji: string; color: string }
 interface Evaluation { score: number; evaluated_at: string; notes: string | null }
 interface Avatar { xp: number; level: number }
@@ -26,11 +34,20 @@ interface Props {
 }
 
 export default function AreaDetailClient({ area, projects, avatar, evaluations, countByProject, userId }: Props) {
+  const questions = DEFAULT_AREAS[area.order_index]?.questions ?? []
   const [showEvalModal, setShowEvalModal] = useState(false)
-  const [newScore, setNewScore] = useState(evaluations[0]?.score ?? 70)
+  const [answers, setAnswers] = useState<number[]>(() => questions.map(() => evaluations[0]?.score ?? 70))
   const [evalNotes, setEvalNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const router = useRouter()
+
+  const computedScore = answers.length > 0
+    ? Math.round(answers.reduce((s, v) => s + v, 0) / answers.length)
+    : evaluations[0]?.score ?? 70
+
+  const updateAnswer = (qi: number, value: number) => {
+    setAnswers(prev => prev.map((v, i) => i === qi ? value : v))
+  }
 
   const avatarLevel = getAvatarLevel(avatar.xp)
   const nextLevel = getNextLevel(avatar.xp)
@@ -47,7 +64,7 @@ export default function AreaDetailClient({ area, projects, avatar, evaluations, 
     await supabase.from('area_evaluations').insert({
       user_id: userId,
       area_id: area.id,
-      score: newScore,
+      score: computedScore,
       notes: evalNotes.trim() || null,
     })
     setSaving(false)
@@ -295,31 +312,56 @@ export default function AreaDetailClient({ area, projects, avatar, evaluations, 
               padding: '1.5rem', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
             }}
           >
-            <div style={{ width: '40px', height: '4px', borderRadius: '99px', background: 'var(--border-default)', margin: '0 auto 1.5rem' }} />
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-              Evaluar {area.emoji} {area.name}
-            </h3>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-              ¿Cómo está esta área en tu vida hoy?
+            <div style={{ width: '40px', height: '4px', borderRadius: '99px', background: 'var(--border-default)', margin: '0 auto 1.25rem' }} />
+
+            {/* Header fijo */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+              <h3 style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {area.emoji} {area.name}
+              </h3>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: '1.5rem', fontWeight: 900, color: area.color, lineHeight: 1 }}>{computedScore}</p>
+                <p style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>promedio</p>
+              </div>
+            </div>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+              Responde con honestidad — el promedio de tus respuestas será el puntaje.
             </p>
 
-            <div style={{ marginBottom: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                  {newScore < 40 ? 'Por mejorar' : newScore < 60 ? 'Regular' : newScore < 80 ? 'Bien' : newScore < 90 ? 'Muy bien' : 'Excelente'}
-                </span>
-                <span style={{ fontSize: '1.125rem', fontWeight: 800, color: area.color }}>{newScore}%</span>
-              </div>
-              <input
-                type="range" min={0} max={100} step={5}
-                value={newScore}
-                onChange={e => setNewScore(Number(e.target.value))}
-                style={{
-                  width: '100%', height: '6px', appearance: 'none', borderRadius: '99px',
-                  background: `linear-gradient(to right, ${area.color} 0%, ${area.color} ${newScore}%, var(--surface-secondary) ${newScore}%, var(--surface-secondary) 100%)`,
-                  outline: 'none', cursor: 'pointer',
-                }}
-              />
+            {/* Preguntas scrollables */}
+            <div style={{ maxHeight: '50vh', overflowY: 'auto', marginBottom: '1rem', paddingRight: '4px' }}>
+              <style>{`
+                input[type=range]::-webkit-slider-thumb {
+                  appearance: none; width: 22px; height: 22px; border-radius: 50%;
+                  background: ${area.color}; border: 2px solid white;
+                  box-shadow: 0 1px 6px rgba(0,0,0,0.2); cursor: pointer;
+                }
+              `}</style>
+              {questions.map((q, qi) => (
+                <div key={qi} style={{ marginBottom: '1.25rem' }}>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500, marginBottom: '0.5rem', lineHeight: 1.4 }}>
+                    {q}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <input
+                      type="range" min={0} max={100} step={5}
+                      value={answers[qi] ?? 70}
+                      onChange={e => updateAnswer(qi, Number(e.target.value))}
+                      style={{
+                        flex: 1, height: '6px', appearance: 'none', borderRadius: '99px',
+                        background: `linear-gradient(to right, ${area.color} 0%, ${area.color} ${answers[qi] ?? 70}%, var(--surface-secondary) ${answers[qi] ?? 70}%, var(--surface-secondary) 100%)`,
+                        outline: 'none', cursor: 'pointer',
+                      }}
+                    />
+                    <span style={{ fontSize: '0.9375rem', fontWeight: 800, color: area.color, minWidth: '36px', textAlign: 'right' }}>
+                      {answers[qi] ?? 70}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', fontWeight: 500, marginTop: '2px' }}>
+                    {scoreLabel(answers[qi] ?? 70)}
+                  </p>
+                </div>
+              ))}
             </div>
 
             <textarea
