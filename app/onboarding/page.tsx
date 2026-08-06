@@ -154,9 +154,10 @@ export default function OnboardingPage() {
     )
 
     if (waPhone.trim()) {
+      const flowlingName = SPECIES_LIST.find(s => s.id === species)?.name ?? 'Bloom'
       fetch('/api/whatsapp/welcome', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: waPhone.trim(), name: name.trim() || 'amiga' }),
+        body: JSON.stringify({ phone: waPhone.trim(), name: name.trim() || 'amiga', flowlingName }),
       }).catch(() => {})
     }
 

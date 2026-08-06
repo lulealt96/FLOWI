@@ -7,18 +7,16 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { phone, name } = await req.json()
+  const { phone, name, flowlingName } = await req.json()
   if (!phone) return NextResponse.json({ ok: false, reason: 'no_phone' })
 
   const clean = phone.replace(/[\s\-()]/g, '').replace(/^\+/, '')
+  const fName = flowlingName || 'Bloom'
 
   const message =
-    `¡Hola ${name}! 👋 Soy *Flowi*, tu asistente personal.\n\n` +
-    `Así es como puedes usarme:\n\n` +
-    `📝 *Agregar tareas*\n"Reunión con el equipo mañana a las 10am"\n\n` +
-    `🔔 *Recordatorios*\n"Recuérdame pagar la renta el viernes"\n\n` +
-    `📁 *Asignar a proyecto*\n"Llamar al contador → Mi negocio"\n\n` +
-    `Solo escríbeme en lenguaje natural y yo lo organizo todo. ¡Empecemos! 🚀`
+    `¡Hola ${name}! Soy *${fName}*, tu Flowling 🌱 Acabo de nacer contigo en Flowi.\n\n` +
+    `Puedo ayudarte con tus tareas, recordatorios y proyectos. Escríbeme cuando quieras — aquí estaré.\n\n` +
+    `¿Por dónde empezamos? 🚀`
 
   try {
     await sendWhatsAppMessage(clean, message)
