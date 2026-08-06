@@ -660,8 +660,8 @@ function BloomCrown400({ si }: { si: number }) {
         ))}
         {[0,60,120,180,240,300].map((deg,i)=>{
           const rad = deg*Math.PI/180
-          const px = BCX+Math.cos(rad)*pR*1.5
-          const py = fy +Math.sin(rad)*pR*1.5
+          const px = Math.round((BCX+Math.cos(rad)*pR*1.5)*100)/100
+          const py = Math.round((fy +Math.sin(rad)*pR*1.5)*100)/100
           return (
             <ellipse key={i} cx={px} cy={py} rx={pR*0.8} ry={pR*0.48}
               fill={i%2===0?'#FFC0CB':'#FFD1DC'} stroke="#F472B6" strokeWidth={1.5}
