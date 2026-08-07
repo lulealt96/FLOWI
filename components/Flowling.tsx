@@ -932,45 +932,44 @@ export default function Flowling({
         transition={{ repeat:Infinity, duration:bodyDur, ease:'easeInOut', repeatType:'reverse' }}
       >
         {isBloom ? (
-          /* ══ BLOOM: PNG base + SVG face overlay ══ */
-          <div style={{ position: 'relative', width: w, height: h }}>
+          /* ══ BLOOM: PNG base + SVG face overlay ══
+             El scale se aplica al contenedor completo (cuerpo + cara juntos)
+             para que nunca se desalineen. Los overlays SVG siempre usan si=0
+             porque el PNG muestra siempre el diseño de etapa 1. */
+          <div style={{
+            position: 'relative', width: w, height: h,
+            transform: `scale(${BLOOM_PNG_SCALE[si]})`,
+            transformOrigin: 'center bottom',
+          }}>
+            {/* PNG base — etapa 1, tamaño fijo */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/Flowlings/bloom/base.png"
+              alt="Bloom"
+              draggable={false}
+              style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', userSelect: 'none' }}
+            />
 
-            {/* Scale wrapper — PNG and face overlay scale together per stage */}
-            <div style={{
-              position: 'absolute', inset: 0,
-              transform: si > 0 ? `scale(${BLOOM_PNG_SCALE[si]})` : undefined,
-              transformOrigin: 'center bottom',
-            }}>
-              {/* PNG base */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/Flowlings/bloom/base.png"
-                alt="Bloom"
-                draggable={false}
-                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', userSelect: 'none' }}
-              />
+            {/* SVG overlay — cara y efectos, siempre coordenadas de si=0 */}
+            <svg
+              viewBox="0 0 400 450"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+            >
+              <BloomDefs400 si={0} />
+              <g id="slot-back" />
+              {hasFire && <BloomFireAura400 si={0} />}
+              <BloomFace400 si={0} emotion={emotion} />
+              {emotion === 'sleeping'    && <BloomSleepZzz400 si={0} />}
+              {emotion === 'celebrating' && <BloomCelebStars400 si={0} />}
+              <g id="slot-headpiece"      />
+              <g id="slot-face-accessory" />
+              <g id="slot-body-accessory" />
+              <g id="slot-hand-holding"   />
+              <g id="slot-aura"           />
+            </svg>
 
-              {/* SVG overlay: face + effects + accessory slots (transparent bg) */}
-              <svg
-                viewBox="0 0 400 450"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
-              >
-                <BloomDefs400 si={si} />
-                <g id="slot-back" />
-                {hasFire && <BloomFireAura400 si={si} />}
-                <BloomFace400 si={si} emotion={emotion} />
-                {emotion === 'sleeping'    && <BloomSleepZzz400 si={si} />}
-                {emotion === 'celebrating' && <BloomCelebStars400 si={si} />}
-                <g id="slot-headpiece"      />
-                <g id="slot-face-accessory" />
-                <g id="slot-body-accessory" />
-                <g id="slot-hand-holding"   />
-                <g id="slot-aura"           />
-              </svg>
-            </div>
-
-            {/* Evolution glow — visually indicates stages 2-4 */}
+            {/* Evolution glow — etapas 3-5 */}
             {si >= 2 && (
               <div style={{
                 position: 'absolute', inset: 0, pointerEvents: 'none',
