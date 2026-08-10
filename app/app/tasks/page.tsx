@@ -12,5 +12,5 @@ export default async function TasksPage() {
     supabase.from('projects').select('id, name, emoji, color').eq('user_id', user.id),
   ])
 
-  return <TasksClient tasks={tasks ?? []} projects={projects ?? []} />
+  return <TasksClient tasks={tasks ?? []} projects={projects ?? []} userId={user.id} />
 }

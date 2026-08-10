@@ -13,5 +13,5 @@ export default async function RemindersPage() {
     .eq('user_id', user.id)
     .order('remind_at', { ascending: true })
 
-  return <RemindersClient reminders={reminders ?? []} />
+  return <RemindersClient reminders={reminders ?? []} userId={user.id} />
 }

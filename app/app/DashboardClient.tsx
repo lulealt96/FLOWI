@@ -1,8 +1,10 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
 import Link from 'next/link'
-import { MessageCircle, ArrowRight, Flame } from 'lucide-react'
+import { MessageCircle, ArrowRight, Flame, CheckCircle, Circle } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts'
 import Flowling, { type FlowlingEmotion } from '@/components/Flowling'
 import { getFlowlingLevel } from '@/lib/areas/defaults'
@@ -82,6 +84,22 @@ export default function DashboardClient({
   const totalXp      = userAvatar?.total_xp ?? 0
   const flowlingLvl  = getFlowlingLevel(totalXp)
   const emotion      = computeEmotion(userAvatar?.last_seen_at, streak.current_streak)
+
+  const [localUrgent, setLocalUrgent] = useState(urgentTasks)
+  const [toggling, setToggling] = useState<string | null>(null)
+
+  const toggleUrgent = async (task: Task) => {
+    if (toggling) return
+    setToggling(task.id)
+    setLocalUrgent(prev => prev.filter(t => t.id !== task.id))
+    await createClient().from('tasks').update({ status: 'done' }).eq('id', task.id)
+    fetch('/api/xp/award', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId: task.id }),
+    }).catch(() => {})
+    setToggling(null)
+  }
 
   const cometaData = areas.map(a => ({
     area:     a.name.split(' ').slice(0, 2).join(' '),
@@ -231,16 +249,26 @@ export default function DashboardClient({
                   Ver áreas →
                 </Link>
               </div>
-              <ResponsiveContainer width="100%" height={220}>
-                <RadarChart data={cometaData} margin={{ top: 8, right: 20, bottom: 8, left: 20 }}>
-                  <PolarGrid stroke="var(--border-default)" />
-                  <PolarAngleAxis
-                    dataKey="area"
-                    tick={{ fontSize: 10, fill: 'var(--text-tertiary)', fontFamily: 'var(--font-sans)', fontWeight: 600 }}
-                  />
-                  <Radar name="Score" dataKey="score" stroke="#F06B8A" fill="#F06B8A" fillOpacity={0.15} strokeWidth={2} />
-                </RadarChart>
-              </ResponsiveContainer>
+              {cometaData.length === 0 ? (
+                <div style={{ height: 180, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem', textAlign: 'center' }}>
+                  <p style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌟</p>
+                  <p style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9375rem', marginBottom: '4px' }}>Tu cometa de vida aparecerá aquí</p>
+                  <Link href="/app/areas" style={{ fontSize: '0.875rem', color: 'var(--brand-primary)', fontWeight: 600, textDecoration: 'none' }}>
+                    Evalúa tus áreas →
+                  </Link>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <RadarChart data={cometaData} margin={{ top: 8, right: 20, bottom: 8, left: 20 }}>
+                    <PolarGrid stroke="var(--border-default)" />
+                    <PolarAngleAxis
+                      dataKey="area"
+                      tick={{ fontSize: 10, fill: 'var(--text-tertiary)', fontFamily: 'var(--font-sans)', fontWeight: 600 }}
+                    />
+                    <Radar name="Score" dataKey="score" stroke="#F06B8A" fill="#F06B8A" fillOpacity={0.15} strokeWidth={2} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              )}
             </motion.div>
 
             {/* Tareas urgentes */}
@@ -249,20 +277,22 @@ export default function DashboardClient({
                 <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Para hoy</h2>
                 <Link href="/app/tasks" style={{ fontSize: '0.8125rem', color: 'var(--brand-primary)', fontWeight: 600, textDecoration: 'none' }}>Ver todas</Link>
               </div>
-              {urgentTasks.length === 0 ? (
+              {localUrgent.length === 0 ? (
                 <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-xl)', padding: '1.25rem', border: '1px solid var(--border-default)', textAlign: 'center' }}>
                   <p style={{ fontSize: '1.5rem', marginBottom: '0.375rem' }}>🎉</p>
                   <p style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9375rem' }}>¡Todo al día!</p>
                   <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '2px' }}>No tienes tareas urgentes</p>
                 </div>
               ) : (
+                <AnimatePresence initial={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {urgentTasks.map((task, i) => {
+                  {localUrgent.map((task, i) => {
                     const project = projects.find(p => p.id === task.project_id)
                     const date    = formatDate(task.due_date)
                     return (
                       <motion.div key={task.id}
                         initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 24 }}
                         transition={{ delay: 0.22 + i * 0.05, duration: 0.3, ease: EASE }}
                         style={{
                           background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)',
@@ -271,7 +301,12 @@ export default function DashboardClient({
                           boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
                         }}
                       >
-                        <div style={{ width: '3px', height: '32px', borderRadius: '99px', background: PRIORITY_COLOR[task.priority] ?? 'var(--border-default)', flexShrink: 0 }} />
+                        <button
+                          onClick={() => toggleUrgent(task)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, color: 'var(--border-strong)' }}
+                        >
+                          <Circle size={22} />
+                        </button>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontSize: '0.9375rem', fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>
                             {task.title}
@@ -281,10 +316,12 @@ export default function DashboardClient({
                             {date && <span style={{ fontSize: '0.75rem', color: date.color, fontWeight: 500 }}>· {date.label}</span>}
                           </div>
                         </div>
+                        <div style={{ width: '3px', height: '32px', borderRadius: '99px', background: PRIORITY_COLOR[task.priority] ?? 'var(--border-default)', flexShrink: 0 }} />
                       </motion.div>
                     )
                   })}
                 </div>
+                </AnimatePresence>
               )}
             </motion.section>
 

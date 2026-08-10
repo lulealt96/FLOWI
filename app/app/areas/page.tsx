@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import AvatarStar from '@/components/AvatarStar'
 import { getAvatarLevel } from '@/lib/areas/defaults'
 
 export default async function AreasPage() {
