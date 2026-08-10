@@ -2,12 +2,13 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useTransition, useState, useEffect } from 'react'
-import { House, Star, Gear } from '@phosphor-icons/react'
+import { House, Star, Bell, Gear } from '@phosphor-icons/react'
 
 const NAV = [
-  { href: '/app',       label: 'Inicio',  Icon: House },
-  { href: '/app/areas', label: 'Áreas',   Icon: Star  },
-  { href: '/app/settings', label: 'Ajustes', Icon: Gear },
+  { href: '/app',             label: 'Inicio',   Icon: House },
+  { href: '/app/areas',       label: 'Áreas',    Icon: Star  },
+  { href: '/app/reminders',   label: 'Alertas',  Icon: Bell  },
+  { href: '/app/settings',    label: 'Ajustes',  Icon: Gear  },
 ]
 
 export default function BottomNav() {

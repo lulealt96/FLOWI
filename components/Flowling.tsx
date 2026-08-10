@@ -424,16 +424,16 @@ function GenCelebStars({ s }: { s: S }) {
    Coordenadas derivadas del SVG estructurado provisto.
    =========================================================== */
 
-const BCX = 200   // center x in Bloom's 400×450 space
-const BCY = 250   // center y in Bloom's 400×450 space
+const BCX = 250   // center x in Bloom's 500×500 space
+const BCY = 320   // center y in Bloom's 500×500 space
 
-// Body sizes per stage (rx, ry) in 400×450 units — used for face overlay coords
+// Body sizes per stage (rx, ry) in 500×500 units — used for face overlay coords
 const BLOOM_BODY_SIZES = [
-  { rx:115, ry:130 },  // stage 0 — exact match to provided SVG
-  { rx:128, ry:144 },  // stage 1
-  { rx:143, ry:160 },  // stage 2
-  { rx:160, ry:180 },  // stage 3
-  { rx:180, ry:204 },  // stage 4
+  { rx:144, ry:144 },  // stage 0
+  { rx:160, ry:160 },  // stage 1
+  { rx:179, ry:178 },  // stage 2
+  { rx:200, ry:200 },  // stage 3
+  { rx:225, ry:227 },  // stage 4
 ]
 
 // CSS scale applied to PNG per stage (derived from rx ratio vs stage 0)
@@ -443,17 +443,17 @@ const BLOOM_PNG_SCALE = [1, 1.11, 1.24, 1.39, 1.57]
 function bloomFace(si: number) {
   const { rx, ry } = BLOOM_BODY_SIZES[si]
   return {
-    eyeOff: rx  * 0.348,    // stage0: 40
-    eyeY:  -ry  * 0.192,    // stage0: -25 → cy=225
-    eyeRx:  rx  * 0.104,    // stage0: 12
-    eyeRy:  ry  * 0.123,    // stage0: 16
-    mHW:    rx  * 0.104,    // mouth half-width, stage0: 12
-    mY:    -ry  * 0.062,    // mouth y offset from BCY, stage0: -8
-    mDip:   ry  * 0.093,    // smile dip depth, stage0: 12
-    bOff:   rx  * 0.478,    // blush x offset, stage0: 55
+    eyeOff: rx  * 0.348,    // stage0: 50
+    eyeY:  -ry  * 0.192,    // stage0: -28 → cy=250
+    eyeRx:  rx  * 0.104,    // stage0: 15
+    eyeRy:  ry  * 0.123,    // stage0: 18
+    mHW:    rx  * 0.104,    // mouth half-width, stage0: 15
+    mY:    -ry  * 0.062,    // mouth y offset from BCY, stage0: -9
+    mDip:   ry  * 0.093,    // smile dip depth, stage0: 13
+    bOff:   rx  * 0.478,    // blush x offset, stage0: 69
     bY:    -ry  * 0.038,    // blush y offset, stage0: -5
-    bRx:    14  * rx/115,   // blush rx
-    bRy:    8   * ry/130,   // blush ry
+    bRx:    14  * rx/144,   // blush rx
+    bRy:    8   * ry/144,   // blush ry
   }
 }
 
@@ -521,7 +521,7 @@ function BloomDefs400({ si }: { si: number }) {
 /* ── Bloom: Ground shadow ─────────────────────────────────── */
 function BloomGroundShadow({ si }: { si: number }) {
   const { rx } = BLOOM_BODY_SIZES[si]
-  return <ellipse cx={BCX} cy={415} rx={rx*0.65} ry={14} fill="url(#bloomDropShadow)" />
+  return <ellipse cx={BCX} cy={461} rx={rx*0.65} ry={14} fill="url(#bloomDropShadow)" />
 }
 
 /* ── Bloom: Feet ──────────────────────────────────────────── */
@@ -918,7 +918,7 @@ export default function Flowling({
 
   const h = SIZE_H[size]
   const w = isBloom
-    ? Math.round(h * (400/450))
+    ? h
     : Math.round(h * (120/150))
 
   const xpInLevel   = totalXp - lvl.minXp
@@ -952,7 +952,7 @@ export default function Flowling({
 
             {/* SVG overlay — cara y efectos, siempre coordenadas de si=0 */}
             <svg
-              viewBox="0 0 400 450"
+              viewBox="0 0 500 500"
               xmlns="http://www.w3.org/2000/svg"
               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
             >

@@ -202,6 +202,7 @@ export default function ProjectDetailClient({ project: initialProject, tasks: in
 
   const handleEditDelete = async () => {
     if (!editTask) return
+    if (!confirm('¿Eliminar esta tarea? Esta acción no se puede deshacer.')) return
     await createClient().from('tasks').delete().eq('id', editTask.id)
     setTasks(prev => prev.filter(t => t.id !== editTask.id))
     setEditTask(null)

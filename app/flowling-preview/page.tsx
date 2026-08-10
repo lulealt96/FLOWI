@@ -1,5 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import Flowling, { type FlowlingEmotion } from '@/components/Flowling'
 import { SPECIES } from '@/lib/flowlings/species'
 
@@ -8,6 +11,13 @@ const SPECIES_IDS = Object.keys(SPECIES)
 const XP_PER_STAGE = [0, 100, 500, 2000, 8000]
 
 export default function FlowlingPreview() {
+  const router = useRouter()
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      if (!user) router.replace('/login')
+    })
+  }, [router])
+
   return (
     <div style={{ background: '#FAFAF8', minHeight: '100dvh', padding: '2rem 1.5rem', fontFamily: 'sans-serif' }}>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem', color: '#1C0D14' }}>

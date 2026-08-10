@@ -138,6 +138,7 @@ export default function FinanceTracker({
   }
 
   const handleDelete = async (id: string) => {
+    if (!confirm('¿Eliminar este movimiento? Esta acción no se puede deshacer.')) return
     const supabase = createClient()
     await supabase.from('transactions').delete().eq('id', id)
     setTxs(prev => prev.filter(t => t.id !== id))

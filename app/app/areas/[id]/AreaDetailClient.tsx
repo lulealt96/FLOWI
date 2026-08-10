@@ -54,6 +54,7 @@ export default function AreaDetailClient({ area, projects, avatar, evaluations, 
   const [answers, setAnswers] = useState<number[]>(() => questions.map(() => evaluations[0]?.score ?? 70))
   const [evalNotes, setEvalNotes] = useState('')
   const [saving, setSaving] = useState(false)
+  const [savedToast, setSavedToast] = useState(false)
   const router = useRouter()
 
   const computedScore = answers.length > 0
@@ -84,6 +85,8 @@ export default function AreaDetailClient({ area, projects, avatar, evaluations, 
     })
     setSaving(false)
     setShowEvalModal(false)
+    setSavedToast(true)
+    setTimeout(() => setSavedToast(false), 2500)
     router.refresh()
   }
 
@@ -98,7 +101,7 @@ export default function AreaDetailClient({ area, projects, avatar, evaluations, 
         display: 'flex', alignItems: 'center', gap: '0.75rem',
         position: 'sticky', top: 0, zIndex: 20,
       }}>
-        <Link href="/app" style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+        <Link href="/app/areas" style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)', textDecoration: 'none' }}>
           <ChevronLeft size={20} />
         </Link>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -328,6 +331,21 @@ export default function AreaDetailClient({ area, projects, avatar, evaluations, 
         )}
 
       </div>
+
+      {/* Toast de éxito al guardar evaluación */}
+      {savedToast && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+          style={{
+            position: 'fixed', bottom: '6rem', left: '50%', transform: 'translateX(-50%)',
+            background: '#10B981', color: 'white', padding: '0.75rem 1.25rem',
+            borderRadius: '99px', fontWeight: 700, fontSize: '0.9375rem',
+            boxShadow: '0 4px 16px rgba(16,185,129,0.35)', zIndex: 200, whiteSpace: 'nowrap',
+          }}
+        >
+          ✓ Evaluación guardada
+        </motion.div>
+      )}
 
       {/* Modal evaluación mensual */}
       {showEvalModal && (

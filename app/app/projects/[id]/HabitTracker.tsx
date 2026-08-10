@@ -112,6 +112,7 @@ export default function HabitTracker({
   }
 
   const handleDelete = async (id: string) => {
+    if (!confirm('¿Eliminar este hábito y todo su historial? Esta acción no se puede deshacer.')) return
     const supabase = createClient()
     await supabase.from('habits').delete().eq('id', id)
     setHabits(prev => prev.filter(h => h.id !== id))
