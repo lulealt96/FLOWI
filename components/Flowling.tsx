@@ -424,17 +424,63 @@ function GenCelebStars({ s }: { s: S }) {
    Base (por etapa) + Expresión (overlay) + Poses especiales
    =========================================================== */
 
-const bloomBase      = (si: number) => `/assets/Flowlings/bloom/Base/bloom_${si + 1}.png`
+const bloomBase      = (si: number) => `/assets/Flowlings/bloom/Base/Etapa_${si + 1}.png`
 const bloomPoseCeleb = (si: number) => `/assets/Flowlings/bloom/Poses/Celebrando/Etapa_${si + 1}.png`
-const bloomPoseSleep = (si: number) => `/assets/Flowlings/bloom/Poses/Durmiendo/ETAPA_${si + 1}.png`
+const bloomPoseSleep = (si: number) => `/assets/Flowlings/bloom/Poses/Durmiendo/Etapa_${si + 1}.png`
 
 const BLOOM_FACE: Record<string, string> = {
   happy:        '/assets/Flowlings/bloom/Expresiones/Feliz.png',
-  encouraging:  '/assets/Flowlings/bloom/Expresiones/Feliz.png',
-  tired:        '/assets/Flowlings/bloom/Expresiones/Feliz.png',
+  encouraging:  '/assets/Flowlings/bloom/Expresiones/Alentador.png',
+  tired:        '/assets/Flowlings/bloom/Expresiones/Cansado.png',
   concentrated: '/assets/Flowlings/bloom/Expresiones/Sorprendido.png',
 }
 const BLOOM_FACE_DEFAULT = '/assets/Flowlings/bloom/Expresiones/Feliz.png'
+
+// Ajuste fino del overlay de expresión por etapa (si=0…4)
+// translateY(+%) = bajar  |  translateY(-%) = subir  |  scale(X) = agrandar  |  translateX(-%) = izquierda
+const BLOOM_FACE_ADJUST: string[] = [
+  'translateY(15%)',                      // E1 Semilla: bajar + centrar
+  'translateY(8%)',                       // E2 Brote: subir un poco
+  'translateX(-2%) translateY(-5%)',     // E3 Explorador: subir un poco
+  'translateY(-3%)',                     // E4 Maestro: subir un poco
+  'scale(0.85) translateX(-8%) translateY(-7%)', // E5 Guardián: subir y derecha
+]
+
+// Ajuste específico para Cansado (tired)
+const BLOOM_CANSADO_ADJUST: string[] = [
+  'translateY(10%)',                              // E1: subir un poco
+  'translateY(4%)',                               // E2: subir un poquito
+  'translateX(-5%) translateY(-5%)',              // E3: izquierda un poquito
+  'translateY(-7%)',                              // E4: subir un poquito
+  'scale(0.85) translateX(-8%) translateY(-7%)', // E5: igual que Feliz
+]
+
+// Ajuste específico para Alentador (encouraging) — escalar un poco más grande
+const BLOOM_ALENTADOR_ADJUST: string[] = [
+  'scale(1.12) translateY(10%)',                 // E1: subir un poco
+  'scale(1.12) translateY(4%)',                  // E2: subir un poco
+  'scale(1.12) translateX(-5%) translateY(-5%)', // E3: izquierda un poco
+  'scale(1.12) translateY(-7%)',                 // E4: subir un poco
+  'scale(0.95) translateX(-8%) translateY(-7%)', // E5: sin cambio
+]
+
+// Ajuste específico para Sorprendido (concentrated) — hereda los anteriores salvo E3/E4/E5
+const BLOOM_SORPRENDIDO_ADJUST: string[] = [
+  'translateY(15%)',                              // E1: igual
+  'translateY(8%)',                               // E2: igual
+  'translateX(-5%) translateY(-2%)',              // E3: subir un poquito
+  'translateY(-2%)',                              // E4: bajar un poquito
+  'scale(0.85) translateX(-9%) translateY(0%)',  // E5: izquierda suave
+]
+
+// Ajuste del cuerpo base por etapa (scale para cuando el personaje queda pequeño en el canvas)
+const BLOOM_BASE_ADJUST: string[] = [
+  'none',        // E1
+  'none',        // E2
+  'none',        // E3
+  'none',        // E4
+  'scale(1.22)', // E5 Guardián: base más pequeña en canvas → agrandar
+]
 
 /* =============================================================
    MAIN Flowling COMPONENT
@@ -496,7 +542,7 @@ export default function Flowling({
       >
         {isBloom ? (
           /* ══ BLOOM: PNG por etapa + expresión overlay ══ */
-          <div style={{ position: 'relative', width: w, height: h }}>
+          <div style={{ position: 'relative', width: w, height: h, overflow: 'hidden' }}>
 
             {emotion === 'celebrating' ? (
               /* Pose celebración — imagen completa por etapa */
@@ -505,7 +551,7 @@ export default function Flowling({
                 src={bloomPoseCeleb(si)}
                 alt="Bloom celebrando"
                 draggable={false}
-                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none' }}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: BLOOM_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }}
               />
             ) : emotion === 'sleeping' ? (
               /* Pose durmiendo — imagen completa por etapa */
@@ -514,7 +560,7 @@ export default function Flowling({
                 src={bloomPoseSleep(si)}
                 alt="Bloom durmiendo"
                 draggable={false}
-                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none' }}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: BLOOM_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }}
               />
             ) : (
               /* Emociones estándar: cuerpo base + expresión overlay */
@@ -524,14 +570,19 @@ export default function Flowling({
                   src={bloomBase(si)}
                   alt="Bloom"
                   draggable={false}
-                  style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: BLOOM_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }}
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={BLOOM_FACE[emotion] ?? BLOOM_FACE_DEFAULT}
                   alt=""
                   draggable={false}
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', pointerEvents: 'none', userSelect: 'none' }}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', pointerEvents: 'none', userSelect: 'none', transform: (
+  emotion === 'concentrated' ? BLOOM_SORPRENDIDO_ADJUST[si] :
+  emotion === 'tired'        ? BLOOM_CANSADO_ADJUST[si] :
+  emotion === 'encouraging'  ? BLOOM_ALENTADOR_ADJUST[si] :
+  BLOOM_FACE_ADJUST[si]
+) ?? 'none', transformOrigin: 'center center' }}
                 />
               </>
             )}
