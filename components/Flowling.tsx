@@ -420,458 +420,21 @@ function GenCelebStars({ s }: { s: S }) {
 }
 
 /* =============================================================
-   BLOOM — 400×450 viewBox
-   Coordenadas derivadas del SVG estructurado provisto.
+   BLOOM — PNG asset system
+   Base (por etapa) + Expresión (overlay) + Poses especiales
    =========================================================== */
 
-const BCX = 250   // center x in Bloom's 500×500 space
-const BCY = 320   // center y in Bloom's 500×500 space
+const bloomBase      = (si: number) => `/assets/Flowlings/bloom/Base/bloom_${si + 1}.png`
+const bloomPoseCeleb = (si: number) => `/assets/Flowlings/bloom/Poses/Celebrando/Etapa_${si + 1}.png`
+const bloomPoseSleep = (si: number) => `/assets/Flowlings/bloom/Poses/Durmiendo/ETAPA_${si + 1}.png`
 
-// Body sizes per stage (rx, ry) in 500×500 units — used for face overlay coords
-const BLOOM_BODY_SIZES = [
-  { rx:144, ry:144 },  // stage 0
-  { rx:160, ry:160 },  // stage 1
-  { rx:179, ry:178 },  // stage 2
-  { rx:200, ry:200 },  // stage 3
-  { rx:225, ry:227 },  // stage 4
-]
-
-// CSS scale applied to PNG per stage (derived from rx ratio vs stage 0)
-const BLOOM_PNG_SCALE = [1, 1.11, 1.24, 1.39, 1.57]
-
-// Parameterized face values derived from stage 0 proportions
-function bloomFace(si: number) {
-  const { rx, ry } = BLOOM_BODY_SIZES[si]
-  return {
-    eyeOff: rx  * 0.348,    // stage0: 50
-    eyeY:  -ry  * 0.192,    // stage0: -28 → cy=250
-    eyeRx:  rx  * 0.104,    // stage0: 15
-    eyeRy:  ry  * 0.123,    // stage0: 18
-    mHW:    rx  * 0.104,    // mouth half-width, stage0: 15
-    mY:    -ry  * 0.062,    // mouth y offset from BCY, stage0: -9
-    mDip:   ry  * 0.093,    // smile dip depth, stage0: 13
-    bOff:   rx  * 0.478,    // blush x offset, stage0: 69
-    bY:    -ry  * 0.038,    // blush y offset, stage0: -5
-    bRx:    14  * rx/144,   // blush rx
-    bRy:    8   * ry/144,   // blush ry
-  }
+const BLOOM_FACE: Record<string, string> = {
+  happy:        '/assets/Flowlings/bloom/Expresiones/Feliz.png',
+  encouraging:  '/assets/Flowlings/bloom/Expresiones/Feliz.png',
+  tired:        '/assets/Flowlings/bloom/Expresiones/Feliz.png',
+  concentrated: '/assets/Flowlings/bloom/Expresiones/Sorprendido.png',
 }
-
-// Organic body path using exact bezier ratios from the provided SVG
-function bloomBodyPath(rx: number, ry: number): string {
-  const cx = BCX; const cy = BCY
-  const p  = (dx: number, dy: number) => `${Math.round(cx+dx)} ${Math.round(cy+dy)}`
-  return [
-    `M ${p(0, -ry)}`,
-    `C ${p(rx*0.739,-ry)}, ${p(rx,-ry*0.462)}, ${p(rx*0.957,ry*0.154)}`,
-    `C ${p(rx*0.913,ry*0.692)}, ${p(rx*0.522,ry)}, ${p(0,ry)}`,
-    `C ${p(-rx*0.522,ry)}, ${p(-rx*0.913,ry*0.692)}, ${p(-rx*0.957,ry*0.154)}`,
-    `C ${p(-rx,-ry*0.462)}, ${p(-rx*0.739,-ry)}, ${p(0,-ry)} Z`,
-  ].join(' ')
-}
-
-/* ── Bloom: Defs (400×450) ────────────────────────────────── */
-function BloomDefs400({ si }: { si: number }) {
-  return (
-    <defs>
-      {/* Body gradient (matches user's design) */}
-      <radialGradient id="bloomBodyGrad" cx="35%" cy="30%" r="70%">
-        <stop offset="0%"   stopColor="#86EFAC" />
-        <stop offset="55%"  stopColor="#4ADE80" />
-        <stop offset="100%" stopColor="#16A34A" />
-      </radialGradient>
-
-      {/* Leaf / crown gradient */}
-      <linearGradient id="bloomLeafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%"   stopColor="#BBF7D0" />
-        <stop offset="100%" stopColor="#22C55E" />
-      </linearGradient>
-
-      {/* Ground shadow */}
-      <radialGradient id="bloomDropShadow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%"   stopColor="#166534" stopOpacity="0.25" />
-        <stop offset="100%" stopColor="#166534" stopOpacity="0"    />
-      </radialGradient>
-
-      {/* Bottom-volume shadow overlay */}
-      <radialGradient id="bloomBodyShadow" cx="50%" cy="90%" r="55%">
-        <stop offset="0%"   stopColor="#14532D" stopOpacity="0.2" />
-        <stop offset="100%" stopColor="#14532D" stopOpacity="0"   />
-      </radialGradient>
-
-      {/* Soft drop shadow for whole character */}
-      <filter id="bloomSoftShadow" x="-15%" y="-10%" width="130%" height="130%">
-        <feDropShadow dx="0" dy="4" stdDeviation="5" floodColor="#14532D" floodOpacity="0.18" />
-      </filter>
-
-      {/* Blush blur */}
-      <filter id="bloomBlushBlur" x="-80%" y="-80%" width="260%" height="260%">
-        <feGaussianBlur stdDeviation="5" />
-      </filter>
-
-      {/* Ancient tree glow (stage 4) */}
-      <filter id="bloomGlow" x="-40%" y="-40%" width="180%" height="180%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
-        <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-      </filter>
-    </defs>
-  )
-}
-
-/* ── Bloom: Ground shadow ─────────────────────────────────── */
-function BloomGroundShadow({ si }: { si: number }) {
-  const { rx } = BLOOM_BODY_SIZES[si]
-  return <ellipse cx={BCX} cy={461} rx={rx*0.65} ry={14} fill="url(#bloomDropShadow)" />
-}
-
-/* ── Bloom: Feet ──────────────────────────────────────────── */
-function BloomFeet400({ si }: { si: number }) {
-  const { rx, ry } = BLOOM_BODY_SIZES[si]
-  if (si === 4) return null  // ancient tree: no visible feet
-  const sc     = rx / 115   // scale from stage-0 reference
-  const bottom = BCY + ry
-  const startY = bottom - 10*sc
-  const endY   = bottom + 18*sc
-  const lx     = BCX - 40*sc
-  const rx2    = BCX + 40*sc
-  const fw     = 20*sc
-
-  return (
-    <g id="body-legs" stroke="#15803D" strokeWidth={3*sc} strokeLinecap="round" strokeLinejoin="round">
-      {/* Left foot */}
-      <path d={`M ${lx} ${startY} C ${lx-10*sc} ${startY+5*sc}, ${lx-15*sc} ${endY-3*sc}, ${lx+5*sc} ${endY} C ${lx+fw} ${endY+2*sc}, ${lx+fw} ${startY+10*sc}, ${lx+15*sc} ${startY} Z`}
-        fill="#22C55E" />
-      {/* Right foot */}
-      <path d={`M ${rx2} ${startY} C ${rx2+10*sc} ${startY+5*sc}, ${rx2+15*sc} ${endY-3*sc}, ${rx2-5*sc} ${endY} C ${rx2-fw} ${endY+2*sc}, ${rx2-fw} ${startY+10*sc}, ${rx2-15*sc} ${startY} Z`}
-        fill="#22C55E" />
-    </g>
-  )
-}
-
-/* ── Bloom: Body ──────────────────────────────────────────── */
-function BloomBody400({ si }: { si: number }) {
-  const { rx, ry } = BLOOM_BODY_SIZES[si]
-  const bp = bloomBodyPath(rx, ry)
-  return (
-    <g id="body-main" filter="url(#bloomSoftShadow)">
-      <path d={bp} fill="url(#bloomBodyGrad)" stroke="#15803D" strokeWidth={4.5} strokeLinejoin="round" />
-      {/* Volume shadow at bottom */}
-      <path d={bp} fill="url(#bloomBodyShadow)" />
-      {/* Main highlight top-left */}
-      <ellipse cx={BCX-rx*0.2} cy={BCY-ry*0.32} rx={rx*0.38} ry={ry*0.22} fill="white" opacity={0.32} />
-      {/* Sharp specular highlight */}
-      <ellipse cx={BCX-rx*0.35} cy={BCY-ry*0.46} rx={rx*0.12} ry={ry*0.08} fill="white" opacity={0.55} />
-    </g>
-  )
-}
-
-/* ── Bloom: Arms ──────────────────────────────────────────── */
-function BloomArms400({ si, emotion }: { si: number; emotion: FlowlingEmotion }) {
-  const { rx, ry } = BLOOM_BODY_SIZES[si]
-  const sc  = rx / 115
-  const bx  = BCX - rx  // left body edge
-  const rx2 = BCX + rx  // right body edge
-  const ay  = BCY + 10*sc
-
-  if (emotion === 'celebrating') {
-    return (
-      <g id="body-arms" stroke="#15803D" strokeWidth={3.5*sc} strokeLinecap="round" fill="#4ADE80">
-        <path d={`M ${BCX-rx*0.91} ${BCY-ry*0.1} C ${BCX-rx*1.1} ${BCY-ry*0.4}, ${BCX-rx*1.15} ${BCY-ry*0.7}, ${BCX-rx*0.95} ${BCY-ry*0.8}`} />
-        <path d={`M ${BCX+rx*0.91} ${BCY-ry*0.1} C ${BCX+rx*1.1} ${BCY-ry*0.4}, ${BCX+rx*1.15} ${BCY-ry*0.7}, ${BCX+rx*0.95} ${BCY-ry*0.8}`} />
-      </g>
-    )
-  }
-  return (
-    <g id="body-arms" stroke="#15803D" strokeWidth={3.5*sc} strokeLinecap="round" fill="#4ADE80">
-      {/* Left arm — from user's design, scaled */}
-      <path d={`M ${BCX-82*sc} ${ay} C ${BCX-100*sc} ${ay+10*sc}, ${BCX-104*sc} ${ay+30*sc}, ${BCX-91*sc} ${ay+35*sc}`} />
-      {/* Right arm */}
-      <path d={`M ${BCX+82*sc} ${ay} C ${BCX+100*sc} ${ay+10*sc}, ${BCX+104*sc} ${ay+30*sc}, ${BCX+91*sc} ${ay+35*sc}`} />
-    </g>
-  )
-}
-
-/* ── Bloom: Crown (stage-specific, 400×450 space) ─────────── */
-function BloomCrown400({ si }: { si: number }) {
-  const { rx, ry } = BLOOM_BODY_SIZES[si]
-  const top = BCY - ry   // body top y
-  const cs  = ry / 130   // crown scale
-
-  /* Stage 0: exact paths from the provided SVG reference */
-  if (si === 0) {
-    return (
-      <g id="head-sprout" stroke="#15803D" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
-        {/* Stem */}
-        <path d={`M ${BCX} ${top+5} C ${BCX} ${top-25}, ${BCX+5} ${top-40}, ${BCX} ${top-55}`} fill="none" />
-        {/* Left leaf */}
-        <path d={`M ${BCX-2} ${top-50} C ${BCX-40} ${top-70}, ${BCX-60} ${top-45}, ${BCX-5} ${top-40} Z`} fill="url(#bloomLeafGrad)" />
-        {/* Right leaf (slightly larger) */}
-        <path d={`M ${BCX+2} ${top-52} C ${BCX+45} ${top-80}, ${BCX+70} ${top-50}, ${BCX+5} ${top-42} Z`} fill="url(#bloomLeafGrad)" />
-        {/* Specular on right leaf */}
-        <path d={`M ${BCX+2} ${top-52} C ${BCX+25} ${top-70}, ${BCX+40} ${top-60}, ${BCX+10} ${top-48} Z`} fill="#DCFCE7" opacity={0.4} stroke="none" />
-      </g>
-    )
-  }
-
-  /* Stage 1: 3 leaves */
-  if (si === 1) {
-    const ht = 80*cs; const lw = 65*cs
-    const leaves3 = [{dx:-lw,dy:ht*0.75},{dx:0,dy:ht},{dx:lw,dy:ht*0.75}]
-    return (
-      <g stroke="#15803D" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
-        <path d={`M ${BCX} ${top+5} C ${BCX} ${top-ht*0.45}, ${BCX+4} ${top-ht*0.75}, ${BCX} ${top-ht}`} fill="none" />
-        {leaves3.map((l,i)=>(
-          <path key={i}
-            d={`M ${BCX} ${top-ht*0.75} C ${BCX+l.dx*0.45} ${top-ht*1.1}, ${BCX+l.dx} ${top-l.dy}, ${BCX+l.dx*0.08} ${top-ht*0.55} Z`}
-            fill="url(#bloomLeafGrad)" stroke="#2D8A3B" strokeWidth={2.5} />
-        ))}
-      </g>
-    )
-  }
-
-  /* Stage 2: 5 leaves + golden bud */
-  if (si === 2) {
-    const ht = 105*cs
-    const leaves5 = [{dx:-72*cs,dy:78*cs},{dx:-36*cs,dy:100*cs},{dx:0,dy:ht},{dx:36*cs,dy:100*cs},{dx:72*cs,dy:78*cs}]
-    return (
-      <g stroke="#15803D" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
-        <path d={`M ${BCX} ${top+5} C ${BCX} ${top-ht*0.45}, ${BCX+4} ${top-ht*0.8}, ${BCX} ${top-ht}`} fill="none" />
-        {leaves5.map((l,i)=>(
-          <path key={i}
-            d={`M ${BCX} ${top-ht*0.72} C ${BCX+l.dx*0.45} ${top-ht*1.05}, ${BCX+l.dx} ${top-l.dy}, ${BCX+l.dx*0.08} ${top-ht*0.55} Z`}
-            fill={i===2?'#5DC974':'url(#bloomLeafGrad)'} stroke="#2D8A3B" strokeWidth={2} />
-        ))}
-        <circle cx={BCX} cy={top-ht-12*cs} r={18*cs} fill="#FBBF24" stroke="#D97706" strokeWidth={2.5} />
-        <circle cx={BCX} cy={top-ht-12*cs} r={9*cs}  fill="#FEF08A" opacity={0.85} />
-      </g>
-    )
-  }
-
-  /* Stage 3: flower headpiece with 6 petals */
-  if (si === 3) {
-    const ht  = 125*cs
-    const pR  = 30*cs
-    const fy  = top - ht - pR*1.4
-    const leaves5B = [{dx:-80*cs,dy:80*cs},{dx:-40*cs,dy:105*cs},{dx:0,dy:ht},{dx:40*cs,dy:105*cs},{dx:80*cs,dy:80*cs}]
-    return (
-      <g stroke="#15803D" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
-        <path d={`M ${BCX} ${top+5} C ${BCX} ${top-ht*0.45}, ${BCX+4} ${top-ht*0.8}, ${BCX} ${top-ht}`} fill="none" />
-        {leaves5B.map((l,i)=>(
-          <path key={i}
-            d={`M ${BCX} ${top-ht*0.72} C ${BCX+l.dx*0.45} ${top-ht*1.05}, ${BCX+l.dx} ${top-l.dy}, ${BCX+l.dx*0.08} ${top-ht*0.55} Z`}
-            fill="url(#bloomLeafGrad)" stroke="#2D8A3B" strokeWidth={2} />
-        ))}
-        {[0,60,120,180,240,300].map((deg,i)=>{
-          const rad = deg*Math.PI/180
-          const px = Math.round((BCX+Math.cos(rad)*pR*1.5)*100)/100
-          const py = Math.round((fy +Math.sin(rad)*pR*1.5)*100)/100
-          return (
-            <ellipse key={i} cx={px} cy={py} rx={pR*0.8} ry={pR*0.48}
-              fill={i%2===0?'#FFC0CB':'#FFD1DC'} stroke="#F472B6" strokeWidth={1.5}
-              transform={`rotate(${deg},${px},${py})`} />
-          )
-        })}
-        <circle cx={BCX} cy={fy} r={24*cs} fill="#FBBF24" stroke="#D97706" strokeWidth={2.5} />
-        <circle cx={BCX} cy={fy} r={12*cs} fill="#FEF08A" opacity={0.85} />
-      </g>
-    )
-  }
-
-  /* Stage 4: ancient tree */
-  const tH = 160*cs
-  const bY = top - tH
-  const branches: [number, number, number][] = [
-    [-95*cs, -68*cs, 6], [-48*cs, -90*cs, 7], [0, -105*cs, 9], [48*cs, -90*cs, 7], [95*cs, -68*cs, 6]
-  ]
-  return (
-    <g>
-      <path d={`M ${BCX-8} ${top+5} C ${BCX-8} ${bY+25} ${BCX+5} ${bY-35} ${BCX} ${bY-55}`}
-        fill="none" stroke="#7B5230" strokeWidth={14} strokeLinecap="round" />
-      {branches.map(([dx,dy,w],i)=>(
-        <g key={i}>
-          <line x1={BCX} y1={bY-30} x2={BCX+dx} y2={top+dy} stroke="#7B5230" strokeWidth={w} strokeLinecap="round" />
-          <ellipse cx={BCX+dx} cy={top+dy-25} rx={42*cs*(i===2?1.2:1)} ry={24*cs*(i===2?1.2:1)}
-            fill={i===2?'#3EAF4D':'#4AB864'} stroke="#2D8A3B" strokeWidth={2} opacity={0.92}
-            transform={`rotate(${(dx/cs)*0.4},${BCX+dx},${top+dy-25})`} />
-        </g>
-      ))}
-      <motion.circle cx={BCX} cy={bY-65} r={24*cs} fill="#6BDE82"
-        filter="url(#bloomGlow)"
-        animate={{r:[22*cs,30*cs,22*cs],opacity:[0.65,1,0.65]}}
-        transition={{duration:2.8,repeat:Infinity,ease:'easeInOut'}} />
-      <motion.circle cx={BCX} cy={bY-65} r={44*cs} fill="#6BDE82" opacity={0.18}
-        animate={{r:[42*cs,55*cs,42*cs],opacity:[0.12,0.28,0.12]}}
-        transition={{duration:2.8,repeat:Infinity,ease:'easeInOut'}} />
-    </g>
-  )
-}
-
-/* ── Bloom: Face (eyes, blush, mouth) ─────────────────────── */
-function BloomFace400({ si, emotion }: { si: number; emotion: FlowlingEmotion }) {
-  const f   = bloomFace(si)
-  const ley = BCY + f.eyeY   // eye center y
-  const lx  = BCX - f.eyeOff  // left eye cx
-  const rx  = BCX + f.eyeOff  // right eye cx
-  const bd  = BLINK_DELAY['bloom'] ?? 0
-
-  const blush = (
-    <g id="face-blush" filter="url(#bloomBlushBlur)">
-      <ellipse cx={BCX-f.bOff} cy={BCY+f.bY} rx={f.bRx} ry={f.bRy} fill="#F43F5E" opacity={0.25} />
-      <ellipse cx={BCX+f.bOff} cy={BCY+f.bY} rx={f.bRx} ry={f.bRy} fill="#F43F5E" opacity={0.25} />
-    </g>
-  )
-
-  const mouthY = BCY + f.mY
-
-  /* Sleeping */
-  if (emotion === 'sleeping') {
-    const sw = f.eyeRy * 0.32
-    return (
-      <g id="face-expression">
-        {blush}
-        <path d={`M ${lx-f.eyeRx} ${ley} Q ${lx} ${ley+f.eyeRy*0.85} ${lx+f.eyeRx} ${ley}`} fill="none" stroke="#0F172A" strokeWidth={sw} strokeLinecap="round" />
-        <path d={`M ${rx-f.eyeRx} ${ley} Q ${rx} ${ley+f.eyeRy*0.85} ${rx+f.eyeRx} ${ley}`} fill="none" stroke="#0F172A" strokeWidth={sw} strokeLinecap="round" />
-        <ellipse cx={BCX} cy={mouthY+f.mDip*0.3} rx={f.mHW*0.55} ry={f.mDip*0.42} fill="#0F172A" opacity={0.25} />
-      </g>
-    )
-  }
-
-  /* Concentrated */
-  if (emotion === 'concentrated') {
-    return (
-      <g id="face-expression">
-        {blush}
-        <path d={`M ${lx-f.eyeRx} ${ley} A ${f.eyeRx} ${f.eyeRy} 0 0,0 ${lx+f.eyeRx} ${ley} Z`} fill="#0F172A" />
-        <circle cx={lx+f.eyeRx*0.25} cy={ley-f.eyeRy*0.2} r={f.eyeRx*0.38} fill="white" opacity={0.85} />
-        <path d={`M ${rx-f.eyeRx} ${ley} A ${f.eyeRx} ${f.eyeRy} 0 0,0 ${rx+f.eyeRx} ${ley} Z`} fill="#0F172A" />
-        <circle cx={rx+f.eyeRx*0.25} cy={ley-f.eyeRy*0.2} r={f.eyeRx*0.38} fill="white" opacity={0.85} />
-        <path d={`M ${BCX-f.mHW*0.55} ${mouthY} Q ${BCX} ${mouthY+f.mDip*0.3} ${BCX+f.mHW*0.55} ${mouthY}`}
-          fill="none" stroke="#0F172A" strokeWidth={f.eyeRx*0.55} strokeLinecap="round" />
-      </g>
-    )
-  }
-
-  /* Tired */
-  if (emotion === 'tired') {
-    return (
-      <g id="face-expression">
-        {blush}
-        <path d={`M ${lx-f.eyeRx} ${ley} A ${f.eyeRx} ${f.eyeRy} 0 0,1 ${lx+f.eyeRx} ${ley} Z`} fill="#0F172A" />
-        <circle cx={lx+f.eyeRx*0.22} cy={ley+f.eyeRy*0.2} r={f.eyeRx*0.3} fill="white" opacity={0.65} />
-        <path d={`M ${rx-f.eyeRx} ${ley} A ${f.eyeRx} ${f.eyeRy} 0 0,1 ${rx+f.eyeRx} ${ley} Z`} fill="#0F172A" />
-        <circle cx={rx+f.eyeRx*0.22} cy={ley+f.eyeRy*0.2} r={f.eyeRx*0.3} fill="white" opacity={0.65} />
-        <ellipse cx={BCX} cy={mouthY+f.mDip*0.25} rx={f.mHW*0.5} ry={f.mDip*0.38} fill="#0F172A" opacity={0.28} />
-      </g>
-    )
-  }
-
-  /* Happy (default) + Encouraging + Celebrating */
-  const big     = emotion === 'celebrating'
-  const eyeScX  = big ? 1.15 : 1
-  const eyeScY  = big ? 1.15 : 1
-  const eRx     = f.eyeRx * eyeScX
-  const eRy     = f.eyeRy * eyeScY
-
-  return (
-    <g id="face-expression">
-      {blush}
-
-      {/* Eye shadows */}
-      <ellipse cx={lx} cy={ley+eRy*0.95} rx={eRx*1.2} ry={eRy*0.3} fill="#0F172A" opacity={0.08} />
-      <ellipse cx={rx} cy={ley+eRy*0.95} rx={eRx*1.2} ry={eRy*0.3} fill="#0F172A" opacity={0.08} />
-
-      {/* Blink wrapper */}
-      <motion.g
-        animate={{ scaleY:[1,1,1,0.05,1,1,1,1,1,1] }}
-        transition={{ duration:6, repeat:Infinity, delay:bd, times:[0,0.33,0.40,0.42,0.45,0.52,0.65,0.78,0.9,1], ease:'easeInOut' }}
-        style={{ transformOrigin:`${BCX}px ${ley}px` }}
-      >
-        {/* Left eye */}
-        <g id="eye-left">
-          <ellipse cx={lx} cy={ley} rx={eRx} ry={eRy} fill="#0F172A" />
-          {/* Large glint (upper-left) */}
-          <circle cx={lx-eRx*0.33} cy={ley-eRy*0.45} r={eRx*0.42} fill="#FFFFFF" />
-          {/* Small glint (lower-right) */}
-          <circle cx={lx+eRx*0.33} cy={ley+eRy*0.3} r={eRx*0.21} fill="#FFFFFF" opacity={0.8} />
-        </g>
-        {/* Right eye */}
-        <g id="eye-right">
-          <ellipse cx={rx} cy={ley} rx={eRx} ry={eRy} fill="#0F172A" />
-          <circle cx={rx-eRx*0.33} cy={ley-eRy*0.45} r={eRx*0.42} fill="#FFFFFF" />
-          <circle cx={rx+eRx*0.33} cy={ley+eRy*0.3} r={eRx*0.21} fill="#FFFFFF" opacity={0.8} />
-        </g>
-      </motion.g>
-
-      {/* Mouth — smile from the provided SVG, parameterized */}
-      {big ? (
-        <>
-          <path d={`M ${BCX-f.mHW} ${mouthY} Q ${BCX} ${mouthY+f.mDip*1.8} ${BCX+f.mHW} ${mouthY}`}
-            fill="none" stroke="#0F172A" strokeWidth={f.eyeRx*0.48} strokeLinecap="round" />
-          <ellipse cx={BCX} cy={mouthY+f.mDip*0.8} rx={f.mHW*0.62} ry={f.mDip*0.52} fill="white" opacity={0.5} />
-        </>
-      ) : (
-        <path d={`M ${BCX-f.mHW} ${mouthY} Q ${BCX} ${mouthY+f.mDip} ${BCX+f.mHW} ${mouthY}`}
-          fill="none" stroke="#0F172A" strokeWidth={f.eyeRx*0.48} strokeLinecap="round" />
-      )}
-    </g>
-  )
-}
-
-/* ── Bloom: Sleep Zzz (400×450) ───────────────────────────── */
-function BloomSleepZzz400({ si }: { si: number }) {
-  const { rx, ry } = BLOOM_BODY_SIZES[si]
-  const sc = ry/130
-  const zs = [
-    { x:BCX+rx+8,  y:BCY-ry*0.55, sz:20*sc, d:0   },
-    { x:BCX+rx+24, y:BCY-ry*0.85, sz:26*sc, d:0.5 },
-    { x:BCX+rx+42, y:BCY-ry*1.1,  sz:32*sc, d:1   },
-  ]
-  return (
-    <>
-      {zs.map((z,i)=>(
-        <motion.text key={i} x={z.x} y={z.y} fontSize={z.sz} fill="#7BAECE" fontWeight="800" textAnchor="middle"
-          animate={{opacity:[0,0.9,0],y:[z.y,z.y-35,z.y-70]}}
-          transition={{delay:z.d,duration:2.8,repeat:Infinity,ease:'easeOut'}}>z</motion.text>
-      ))}
-    </>
-  )
-}
-
-/* ── Bloom: Celebration Stars (400×450) ───────────────────── */
-function BloomCelebStars400({ si }: { si: number }) {
-  const { rx, ry } = BLOOM_BODY_SIZES[si]
-  const stars = [{x:BCX-rx-12,y:BCY-ry*0.75},{x:BCX+rx+20,y:BCY-ry*0.95},{x:BCX,y:BCY-ry-25}]
-  return (
-    <>
-      {stars.map((st,i)=>(
-        <motion.text key={i} x={st.x} y={st.y} fontSize={28} textAnchor="middle"
-          animate={{scale:[0,1.3,1,0],rotate:[0,15,-10,0]}}
-          transition={{delay:i*0.18,duration:1.6,repeat:Infinity,ease:'backOut'}}
-          style={{transformOrigin:`${st.x}px ${st.y}px`}}>✨</motion.text>
-      ))}
-    </>
-  )
-}
-
-/* ── Bloom: Fire Aura (400×450) ───────────────────────────── */
-function BloomFireAura400({ si }: { si: number }) {
-  const { rx, ry } = BLOOM_BODY_SIZES[si]
-  const sc   = ry/130
-  const bY   = BCY + ry - 2
-  const offsets = [-35*sc, -12*sc, 12*sc, 35*sc]
-  return (
-    <>
-      {offsets.map((xOff,i)=>(
-        <motion.path key={i}
-          d={`M${BCX+xOff-12},${bY+18} C${BCX+xOff-10},${bY-14} ${BCX+xOff+10},${bY-14} ${BCX+xOff+12},${bY+18}`}
-          fill={i===1||i===2?'#F97316':'#FB923C'} opacity={0.85}
-          animate={{scaleY:[1,1.35,0.85,1.2,1],opacity:[0.85,1,0.7,0.95,0.85]}}
-          transition={{delay:i*0.18,duration:0.9,repeat:Infinity,ease:'easeInOut'}}
-          style={{transformOrigin:`${BCX+xOff}px ${bY+18}px`}} />
-      ))}
-    </>
-  )
-}
+const BLOOM_FACE_DEFAULT = '/assets/Flowlings/bloom/Expresiones/Feliz.png'
 
 /* =============================================================
    MAIN Flowling COMPONENT
@@ -932,52 +495,56 @@ export default function Flowling({
         transition={{ repeat:Infinity, duration:bodyDur, ease:'easeInOut', repeatType:'reverse' }}
       >
         {isBloom ? (
-          /* ══ BLOOM: PNG base + SVG face overlay ══
-             El scale se aplica al contenedor completo (cuerpo + cara juntos)
-             para que nunca se desalineen. Los overlays SVG siempre usan si=0
-             porque el PNG muestra siempre el diseño de etapa 1. */
-          <div style={{
-            position: 'relative', width: w, height: h,
-            transform: `scale(${BLOOM_PNG_SCALE[si]})`,
-            transformOrigin: 'center bottom',
-          }}>
-            {/* PNG base — etapa 1, tamaño fijo */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/assets/Flowlings/bloom/base.png"
-              alt="Bloom"
-              draggable={false}
-              style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', userSelect: 'none' }}
-            />
+          /* ══ BLOOM: PNG por etapa + expresión overlay ══ */
+          <div style={{ position: 'relative', width: w, height: h }}>
 
-            {/* SVG overlay — cara y efectos, siempre coordenadas de si=0 */}
-            <svg
-              viewBox="0 0 500 500"
-              xmlns="http://www.w3.org/2000/svg"
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
-            >
-              <BloomDefs400 si={0} />
-              <g id="slot-back" />
-              {hasFire && <BloomFireAura400 si={0} />}
-              <BloomFace400 si={0} emotion={emotion} />
-              {emotion === 'sleeping'    && <BloomSleepZzz400 si={0} />}
-              {emotion === 'celebrating' && <BloomCelebStars400 si={0} />}
-              <g id="slot-headpiece"      />
-              <g id="slot-face-accessory" />
-              <g id="slot-body-accessory" />
-              <g id="slot-hand-holding"   />
-              <g id="slot-aura"           />
-            </svg>
+            {emotion === 'celebrating' ? (
+              /* Pose celebración — imagen completa por etapa */
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={bloomPoseCeleb(si)}
+                alt="Bloom celebrando"
+                draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none' }}
+              />
+            ) : emotion === 'sleeping' ? (
+              /* Pose durmiendo — imagen completa por etapa */
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={bloomPoseSleep(si)}
+                alt="Bloom durmiendo"
+                draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none' }}
+              />
+            ) : (
+              /* Emociones estándar: cuerpo base + expresión overlay */
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={bloomBase(si)}
+                  alt="Bloom"
+                  draggable={false}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none' }}
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={BLOOM_FACE[emotion] ?? BLOOM_FACE_DEFAULT}
+                  alt=""
+                  draggable={false}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', pointerEvents: 'none', userSelect: 'none' }}
+                />
+              </>
+            )}
 
-            {/* Evolution glow — etapas 3-5 */}
+            {/* Glow sutil en etapas avanzadas */}
             {si >= 2 && (
               <div style={{
                 position: 'absolute', inset: 0, pointerEvents: 'none',
-                background: `radial-gradient(ellipse 60% 50% at 50% 52%, ${
-                  si === 2 ? 'rgba(74,222,128,0.14)' :
-                  si === 3 ? 'rgba(74,222,128,0.24)' :
-                             'rgba(134,239,172,0.34)'
-                } 0%, transparent 72%)`,
+                background: `radial-gradient(ellipse 60% 50% at 50% 60%, ${
+                  si === 2 ? 'rgba(74,222,128,0.12)' :
+                  si === 3 ? 'rgba(74,222,128,0.20)' :
+                             'rgba(134,239,172,0.28)'
+                } 0%, transparent 70%)`,
               }} />
             )}
           </div>

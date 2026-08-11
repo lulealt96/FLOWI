@@ -169,7 +169,6 @@ export default function DashboardClient({
               initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.06, duration: 0.5, ease: EASE }}
               style={{
-                background: 'var(--surface-primary)',
                 borderRadius: 'var(--radius-xl)',
                 border: '1px solid var(--border-default)',
                 padding: '1.25rem',
@@ -179,23 +178,32 @@ export default function DashboardClient({
                 position: 'relative',
               }}
             >
-              {/* Fondo con degradado sutil */}
+              {/* Ambiente background */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/Flowlings/bloom/Ambiente/ambiente_bloom.png"
+                alt=""
+                draggable={false}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', userSelect: 'none', pointerEvents: 'none' }}
+              />
+              {/* Overlay para legibilidad del texto */}
               <div style={{
-                position: 'absolute', inset: 0,
-                background: 'radial-gradient(ellipse at 20% 50%, rgba(16,185,129,0.06) 0%, transparent 70%)',
-                pointerEvents: 'none',
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: 'linear-gradient(90deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.72) 45%, rgba(255,255,255,0.88) 100%)',
               }} />
 
-              <Flowling
-                totalXp={totalXp}
-                species={species}
-                topAreaIndexes={topAreaIndexes}
-                streak={streak.current_streak}
-                emotion={emotion}
-                size="md"
-              />
+              <div style={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
+                <Flowling
+                  totalXp={totalXp}
+                  species={species}
+                  topAreaIndexes={topAreaIndexes}
+                  streak={streak.current_streak}
+                  emotion={emotion}
+                  size="md"
+                />
+              </div>
 
-              <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+              <div style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
                   <p style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
                     {flowlingLvl.label}
