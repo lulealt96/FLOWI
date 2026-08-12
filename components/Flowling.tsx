@@ -483,6 +483,60 @@ const BLOOM_BASE_ADJUST: string[] = [
 ]
 
 /* =============================================================
+   KIRO — PNG asset system
+   =========================================================== */
+
+const kiroBase      = (si: number) => `/assets/Flowlings/kiro/Base/Etapa_${si + 1}.png`
+const kiroPoseCeleb = (si: number) => `/assets/Flowlings/kiro/Poses/Celebrando/Etapa_${si + 1}.png`
+const kiroPoseSleep = (si: number) => `/assets/Flowlings/kiro/Poses/Durmiendo/Etapa_${si + 1}.png`
+
+const KIRO_FACE: Record<string, string> = {
+  happy:        '/assets/Flowlings/kiro/Expresiones/Feliz.png',
+  encouraging:  '/assets/Flowlings/kiro/Expresiones/Alentador.png',
+  tired:        '/assets/Flowlings/kiro/Expresiones/Cansado.png',
+  concentrated: '/assets/Flowlings/kiro/Expresiones/Sorprendido.png',
+}
+const KIRO_FACE_DEFAULT = '/assets/Flowlings/kiro/Expresiones/Feliz.png'
+
+const KIRO_FACE_ADJUST: string[] = [
+  'scale(0.54) translateY(-10%)',                   // E1
+  'scale(0.55) translateY(-14%)',                   // E2: subir más
+  'scale(0.52) translateY(-16%) translateX(3%)',    // E3: leve izquierda
+  'scale(0.48) translateY(-20%) translateX(8%)',    // E4: subir
+  'scale(0.50) translateY(-25%) translateX(3%)',    // E5: subir + leve derecha
+]
+
+const KIRO_CANSADO_ADJUST: string[]   = [
+  'scale(0.60) translateY(-10%) translateX(2%)',   // E1: tris derecha
+  'scale(0.63) translateY(-18%) translateX(4%)',   // E2: derecha
+  'scale(0.63) translateY(-17%) translateX(5%)',   // E3: derecha
+  'scale(0.62) translateY(-21%) translateX(5%)',   // E4: subir
+  'scale(0.66) translateY(-23%) translateX(2%)',   // E5: izquierda
+]
+const KIRO_ALENTADOR_ADJUST: string[] = [
+  'scale(0.62) translateY(-10%) translateX(4%)',  // E1: derecha
+  'scale(0.60) translateY(-19%) translateX(4%)',  // E2: subir más
+  'scale(0.72) translateY(-11%) translateX(7%)',  // E3: bajar + derecha
+  'scale(0.72) translateY(-17%) translateX(7%)',  // E4: subir tris + derecha
+  'scale(0.70) translateY(-23%) translateX(4%)',  // E5: subir más
+]
+const KIRO_SORPRENDIDO_ADJUST: string[] = [
+  'scale(0.54) translateY(-12%)',  // E1: reducir
+  'scale(0.57) translateY(-16%)',  // E2: reducir
+  'scale(0.57) translateY(-14%) translateX(3%)',   // E3: derecha
+  'scale(0.56) translateY(-21%)',                  // E4: subir más
+  'scale(0.52) translateY(-24%)',                  // E5: subir más
+]
+
+const KIRO_BASE_ADJUST: string[] = [
+  'scale(0.72)', // E1: más pequeña para dar sensación de progresión
+  'scale(0.82)', // E2: un poco más grande que E1
+  'scale(0.90)', // E3: más grande
+  'scale(0.96)', // E4: casi tamaño natural
+  'none',        // E5: tamaño natural del canvas
+]
+
+/* =============================================================
    MAIN Flowling COMPONENT
    =========================================================== */
 
@@ -500,9 +554,11 @@ export default function Flowling({
   const si      = lvl.stageIdx
   const sp      = SPECIES[(species as SpeciesId)] ?? SPECIES.bloom
   const isBloom = species === 'bloom'
+  const isKiro  = species === 'kiro'
+  const isPngSpecies = isBloom || isKiro
 
-  /* Generic species state (only used when !isBloom) */
-  const s = isBloom ? resolveS(si, 'nova') : resolveS(si, species)  // fallback never shown
+  /* Generic species state (only used when !isPngSpecies) */
+  const s = isPngSpecies ? resolveS(si, 'nova') : resolveS(si, species)  // fallback never shown
 
   const hasLeaves   = topAreaIndexes.includes(0)
   const hasGold     = topAreaIndexes.includes(3)
@@ -526,7 +582,7 @@ export default function Flowling({
     emotion === 'tired'        ? 5.5 : 3.2
 
   const h = SIZE_H[size]
-  const w = isBloom
+  const w = isPngSpecies
     ? h
     : Math.round(h * (120/150))
 
@@ -595,6 +651,46 @@ export default function Flowling({
                   si === 2 ? 'rgba(74,222,128,0.12)' :
                   si === 3 ? 'rgba(74,222,128,0.20)' :
                              'rgba(134,239,172,0.28)'
+                } 0%, transparent 70%)`,
+              }} />
+            )}
+          </div>
+
+        ) : isKiro ? (
+          /* ══ KIRO: PNG por etapa + expresión overlay ══ */
+          <div style={{ position: 'relative', width: w, height: h, overflow: 'hidden' }}>
+
+            {emotion === 'celebrating' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={kiroPoseCeleb(si)} alt="Kiro celebrando" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: KIRO_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : emotion === 'sleeping' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={kiroPoseSleep(si)} alt="Kiro durmiendo" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: KIRO_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={kiroBase(si)} alt="Kiro" draggable={false}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: KIRO_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={KIRO_FACE[emotion] ?? KIRO_FACE_DEFAULT} alt="" draggable={false}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', pointerEvents: 'none', userSelect: 'none', transform: (
+                    emotion === 'concentrated' ? KIRO_SORPRENDIDO_ADJUST[si] :
+                    emotion === 'tired'        ? KIRO_CANSADO_ADJUST[si] :
+                    emotion === 'encouraging'  ? KIRO_ALENTADOR_ADJUST[si] :
+                    KIRO_FACE_ADJUST[si]
+                  ) ?? 'none', transformOrigin: 'center center' }} />
+              </>
+            )}
+
+            {si >= 2 && (
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: `radial-gradient(ellipse 60% 50% at 50% 60%, ${
+                  si === 2 ? 'rgba(99,179,237,0.12)' :
+                  si === 3 ? 'rgba(99,179,237,0.20)' :
+                             'rgba(147,210,255,0.28)'
                 } 0%, transparent 70%)`,
               }} />
             )}
