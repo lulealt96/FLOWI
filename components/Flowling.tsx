@@ -537,6 +537,62 @@ const KIRO_BASE_ADJUST: string[] = [
 ]
 
 /* =============================================================
+   MOMO — PNG asset system
+   =========================================================== */
+
+const momoBase      = (si: number) => `/assets/Flowlings/Momo/Base/Etapa_${si + 1}.png`
+const momoPoseCeleb = (si: number) => `/assets/Flowlings/Momo/Poses/Celebrando/Etapa_${si + 1}.png`
+const momoPoseSleep = (si: number) => `/assets/Flowlings/Momo/Poses/Durmiendo/Etapa_${si + 1}.png`
+
+const MOMO_FACE: Record<string, string> = {
+  happy:        '/assets/Flowlings/Momo/Expresiones/Feliz.png',
+  encouraging:  '/assets/Flowlings/Momo/Expresiones/Alentador.png',
+  tired:        '/assets/Flowlings/Momo/Expresiones/Cansado.png',
+  concentrated: '/assets/Flowlings/Momo/Expresiones/Sorprendido.png',
+}
+const MOMO_FACE_DEFAULT = '/assets/Flowlings/Momo/Expresiones/Feliz.png'
+
+const MOMO_FACE_ADJUST: string[] = [
+  'scale(0.60) translateY(-27%)',                                        // E1: recto
+  'scale(0.70) translateY(-29%) translateX(2%) rotate(6deg)',            // E2: derecha
+  'scale(0.65) translateY(-37%) translateX(2%)',                         // E3
+  'scale(0.63) translateY(-34%) translateX(-2%)',                        // E4
+  'scale(0.63) translateY(-25%) translateX(-4%)',                        // E5
+]
+
+const MOMO_CANSADO_ADJUST: string[] = [
+  'scale(0.60) translateY(-30%) translateX(3%)',   // E1: derecha
+  'scale(0.65) translateY(-34%)',                  // E2: bajar
+  'scale(0.63) translateY(-36%)',                  // E3
+  'scale(0.61) translateY(-37%)',                  // E4: bajar
+  'scale(0.61) translateY(-29%)',                  // E5: bajar
+]
+
+const MOMO_ALENTADOR_ADJUST: string[] = [
+  'scale(0.55) translateY(-30%)',                       // E1: reducir
+  'scale(0.60) translateY(-34%) rotate(6deg)',          // E2: inclinar derecha
+  'scale(0.63) translateY(-39%) translateX(-3%) rotate(4deg)', // E3: izquierda
+  'scale(0.61) translateY(-37%) translateX(-3%) rotate(4deg)', // E4: bajar + inclinar
+  'scale(0.56) translateY(-26%) translateX(-7%) rotate(4deg)', // E5: izquierda + inclinar derecha
+]
+
+const MOMO_SORPRENDIDO_ADJUST: string[] = [
+  'scale(0.50) translateY(-30%)',  // E1: reducir
+  'scale(0.50) translateY(-46%)',  // E2: subir
+  'scale(0.52) translateY(-42%)',  // E3
+  'scale(0.50) translateY(-43%)',  // E4
+  'scale(0.50) translateY(-32%) translateX(-3%) rotate(4deg)',  // E5: inclinar derecha
+]
+
+const MOMO_BASE_ADJUST: string[] = [
+  'scale(0.65)', // E1
+  'scale(0.70)', // E2
+  'scale(0.72)', // E3
+  'scale(0.95)', // E4
+  'scale(0.85)', // E5
+]
+
+/* =============================================================
    MAIN Flowling COMPONENT
    =========================================================== */
 
@@ -555,7 +611,8 @@ export default function Flowling({
   const sp      = SPECIES[(species as SpeciesId)] ?? SPECIES.bloom
   const isBloom = species === 'bloom'
   const isKiro  = species === 'kiro'
-  const isPngSpecies = isBloom || isKiro
+  const isMomo  = species === 'momo'
+  const isPngSpecies = isBloom || isKiro || isMomo
 
   /* Generic species state (only used when !isPngSpecies) */
   const s = isPngSpecies ? resolveS(si, 'nova') : resolveS(si, species)  // fallback never shown
@@ -691,6 +748,46 @@ export default function Flowling({
                   si === 2 ? 'rgba(99,179,237,0.12)' :
                   si === 3 ? 'rgba(99,179,237,0.20)' :
                              'rgba(147,210,255,0.28)'
+                } 0%, transparent 70%)`,
+              }} />
+            )}
+          </div>
+
+        ) : isMomo ? (
+          /* ══ MOMO: PNG por etapa + expresión overlay ══ */
+          <div style={{ position: 'relative', width: w, height: h, overflow: 'hidden' }}>
+
+            {emotion === 'celebrating' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={momoPoseCeleb(si)} alt="Momo celebrando" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: MOMO_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : emotion === 'sleeping' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={momoPoseSleep(si)} alt="Momo durmiendo" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: MOMO_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={momoBase(si)} alt="Momo" draggable={false}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: MOMO_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={MOMO_FACE[emotion] ?? MOMO_FACE_DEFAULT} alt="" draggable={false}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', pointerEvents: 'none', userSelect: 'none', transform: (
+                    emotion === 'concentrated' ? MOMO_SORPRENDIDO_ADJUST[si] :
+                    emotion === 'tired'        ? MOMO_CANSADO_ADJUST[si] :
+                    emotion === 'encouraging'  ? MOMO_ALENTADOR_ADJUST[si] :
+                    MOMO_FACE_ADJUST[si]
+                  ) ?? 'none', transformOrigin: 'center center' }} />
+              </>
+            )}
+
+            {si >= 2 && (
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: `radial-gradient(ellipse 60% 50% at 50% 60%, ${
+                  si === 2 ? 'rgba(251,191,36,0.12)' :
+                  si === 3 ? 'rgba(251,191,36,0.20)' :
+                             'rgba(252,211,77,0.28)'
                 } 0%, transparent 70%)`,
               }} />
             )}
