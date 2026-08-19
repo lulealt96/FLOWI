@@ -665,35 +665,35 @@ const OCTI_FACE: Record<string, string> = {
 const OCTI_FACE_DEFAULT = '/assets/Flowlings/Octi/Expresiones/Feliz.png'
 
 const OCTI_FACE_ADJUST: string[] = [
-  'scale(0.60) translateY(-18%)',
-  'scale(0.60) translateY(-22%)',
+  'scale(0.525) translateY(-18%)',
+  'scale(0.55) translateY(-17%)',
   'scale(0.60) translateY(-14%)',
-  'scale(0.65) translateY(-18%)',
-  'scale(0.65) translateY(-17%)',
+  'scale(0.65) translateY(-11%) translateX(3%)',
+  'scale(0.65) translateY(-10%) translateX(-3%)',
 ]
 
 const OCTI_CANSADO_ADJUST: string[] = [
-  'scale(0.60) translateY(-17%)',
-  'scale(0.60) translateY(-21%)',
+  'scale(0.525) translateY(-17%)',
+  'scale(0.55) translateY(-16%)',
   'scale(0.60) translateY(-13%)',
-  'scale(0.65) translateY(-17%)',
-  'scale(0.65) translateY(-16%)',
+  'scale(0.65) translateY(-10%) translateX(3%)',
+  'scale(0.65) translateY(-9%) translateX(-3%)',
 ]
 
 const OCTI_ALENTADOR_ADJUST: string[] = [
-  'scale(0.60) translateY(-17%)',
-  'scale(0.60) translateY(-21%)',
+  'scale(0.525) translateY(-17%)',
+  'scale(0.55) translateY(-16%)',
   'scale(0.60) translateY(-13%)',
-  'scale(0.65) translateY(-17%)',
-  'scale(0.65) translateY(-16%)',
+  'scale(0.65) translateY(-10%) translateX(3%)',
+  'scale(0.65) translateY(-9%) translateX(-3%)',
 ]
 
 const OCTI_SORPRENDIDO_ADJUST: string[] = [
-  'scale(0.60) translateY(-17%)',
-  'scale(0.60) translateY(-21%)',
+  'scale(0.525) translateY(-17%)',
+  'scale(0.55) translateY(-16%)',
   'scale(0.60) translateY(-13%)',
-  'scale(0.65) translateY(-17%)',
-  'scale(0.65) translateY(-16%)',
+  'scale(0.65) translateY(-10%) translateX(3%)',
+  'scale(0.65) translateY(-9%) translateX(-3%)',
 ]
 
 const OCTI_BASE_ADJUST: string[] = [
