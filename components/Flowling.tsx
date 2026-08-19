@@ -649,6 +649,62 @@ const LUMI_BASE_ADJUST: string[] = [
 ]
 
 /* =============================================================
+   NOVA — PNG asset system
+   =========================================================== */
+
+const novaBase      = (si: number) => `/assets/Flowlings/Nova/Base/Etapa_${si + 1}.png`
+const novaPoseCeleb = (si: number) => `/assets/Flowlings/Nova/Poses/Celebracion/Etapa_${si + 1}.png`
+const novaPoseSleep = (si: number) => `/assets/Flowlings/Nova/Poses/Durmiendo/Etapa_${si + 1}.png`
+
+const NOVA_FACE: Record<string, string> = {
+  happy:        '/assets/Flowlings/Nova/Expresiones/Feliz.png',
+  encouraging:  '/assets/Flowlings/Nova/Expresiones/Alentador.png',
+  tired:        '/assets/Flowlings/Nova/Expresiones/Cansado.png',
+  concentrated: '/assets/Flowlings/Nova/Expresiones/Sorprendido.png',
+}
+const NOVA_FACE_DEFAULT = '/assets/Flowlings/Nova/Expresiones/Feliz.png'
+
+const NOVA_FACE_ADJUST: string[] = [
+  'scale(0.35) translateY(-23%)',
+  'scale(0.35) translateY(-24.5%)',
+  'scale(0.375) translateY(-21.5%)',
+  'scale(0.40) translateY(-20.5%)',
+  'scale(0.40) translateY(-19.5%) translateX(-35%)',
+]
+
+const NOVA_CANSADO_ADJUST: string[] = [
+  'scale(0.535) translateY(-15.5%)',
+  'scale(0.548) translateY(-17%) translateX(2.5%)',
+  'scale(0.548) translateY(-16.5%)',
+  'scale(0.598) translateY(-15.5%)',
+  'scale(0.598) translateY(-14.5%) translateX(-22.5%)',
+]
+
+const NOVA_ALENTADOR_ADJUST: string[] = [
+  'scale(0.51) translateY(-18%)',
+  'scale(0.51) translateY(-19.5%) translateX(5%)',
+  'scale(0.525) translateY(-19%)',
+  'scale(0.575) translateY(-18%)',
+  'scale(0.55) translateY(-17%) translateX(-25.5%)',
+]
+
+const NOVA_SORPRENDIDO_ADJUST: string[] = [
+  'scale(0.385) translateY(-25.5%)',
+  'scale(0.41) translateY(-24.5%) translateX(2.5%)',
+  'scale(0.41) translateY(-24%)',
+  'scale(0.46) translateY(-23%)',
+  'scale(0.46) translateY(-22%) translateX(-30%)',
+]
+
+const NOVA_BASE_ADJUST: string[] = [
+  'scale(0.75)', // E1
+  'scale(0.82)', // E2
+  'scale(0.90)', // E3
+  'scale(0.90)', // E4
+  'scale(0.95)', // E5
+]
+
+/* =============================================================
    OCTI — PNG asset system
    =========================================================== */
 
@@ -726,7 +782,8 @@ export default function Flowling({
   const isMomo  = species === 'momo'
   const isLumi  = species === 'lumi'
   const isOcti  = species === 'octi'
-  const isPngSpecies = isBloom || isKiro || isMomo || isLumi || isOcti
+  const isNova  = species === 'nova'
+  const isPngSpecies = isBloom || isKiro || isMomo || isLumi || isOcti || isNova
 
   /* Generic species state (only used when !isPngSpecies) */
   const s = isPngSpecies ? resolveS(si, 'nova') : resolveS(si, species)  // fallback never shown
@@ -942,6 +999,46 @@ export default function Flowling({
                   si === 2 ? 'rgba(167,139,250,0.12)' :
                   si === 3 ? 'rgba(167,139,250,0.20)' :
                              'rgba(196,181,253,0.28)'
+                } 0%, transparent 70%)`,
+              }} />
+            )}
+          </div>
+
+        ) : isNova ? (
+          /* ══ NOVA: PNG por etapa + expresión overlay ══ */
+          <div style={{ position: 'relative', width: w, height: h, overflow: 'hidden' }}>
+
+            {emotion === 'celebrating' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={novaPoseCeleb(si)} alt="Nova celebrando" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: NOVA_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : emotion === 'sleeping' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={novaPoseSleep(si)} alt="Nova durmiendo" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: NOVA_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={novaBase(si)} alt="Nova" draggable={false}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: NOVA_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={NOVA_FACE[emotion] ?? NOVA_FACE_DEFAULT} alt="" draggable={false}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', pointerEvents: 'none', userSelect: 'none', transform: (
+                    emotion === 'concentrated' ? NOVA_SORPRENDIDO_ADJUST[si] :
+                    emotion === 'tired'        ? NOVA_CANSADO_ADJUST[si] :
+                    emotion === 'encouraging'  ? NOVA_ALENTADOR_ADJUST[si] :
+                    NOVA_FACE_ADJUST[si]
+                  ) ?? 'none', transformOrigin: 'center center' }} />
+              </>
+            )}
+
+            {si >= 2 && (
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: `radial-gradient(ellipse 60% 50% at 50% 60%, ${
+                  si === 2 ? 'rgba(99,138,240,0.12)' :
+                  si === 3 ? 'rgba(67,97,196,0.20)' :
+                             'rgba(45,75,159,0.28)'
                 } 0%, transparent 70%)`,
               }} />
             )}
