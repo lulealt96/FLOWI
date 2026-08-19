@@ -649,6 +649,62 @@ const LUMI_BASE_ADJUST: string[] = [
 ]
 
 /* =============================================================
+   OCTI — PNG asset system
+   =========================================================== */
+
+const octiBase      = (si: number) => `/assets/Flowlings/Octi/Base/Etapa_${si + 1}.png`
+const octiPoseCeleb = (si: number) => `/assets/Flowlings/Octi/Poses/Celebrando/Etapa_${si + 1}.png`
+const octiPoseSleep = (si: number) => `/assets/Flowlings/Octi/Poses/Durmiendo/Etapa_${si + 1}.png`
+
+const OCTI_FACE: Record<string, string> = {
+  happy:        '/assets/Flowlings/Octi/Expresiones/Feliz.png',
+  encouraging:  '/assets/Flowlings/Octi/Expresiones/Alentador.png',
+  tired:        '/assets/Flowlings/Octi/Expresiones/Cansado.png',
+  concentrated: '/assets/Flowlings/Octi/Expresiones/Sorprendido.png',
+}
+const OCTI_FACE_DEFAULT = '/assets/Flowlings/Octi/Expresiones/Feliz.png'
+
+const OCTI_FACE_ADJUST: string[] = [
+  'scale(0.60) translateY(-18%)',
+  'scale(0.60) translateY(-22%)',
+  'scale(0.60) translateY(-14%)',
+  'scale(0.65) translateY(-18%)',
+  'scale(0.65) translateY(-17%)',
+]
+
+const OCTI_CANSADO_ADJUST: string[] = [
+  'scale(0.60) translateY(-17%)',
+  'scale(0.60) translateY(-21%)',
+  'scale(0.60) translateY(-13%)',
+  'scale(0.65) translateY(-17%)',
+  'scale(0.65) translateY(-16%)',
+]
+
+const OCTI_ALENTADOR_ADJUST: string[] = [
+  'scale(0.60) translateY(-17%)',
+  'scale(0.60) translateY(-21%)',
+  'scale(0.60) translateY(-13%)',
+  'scale(0.65) translateY(-17%)',
+  'scale(0.65) translateY(-16%)',
+]
+
+const OCTI_SORPRENDIDO_ADJUST: string[] = [
+  'scale(0.60) translateY(-17%)',
+  'scale(0.60) translateY(-21%)',
+  'scale(0.60) translateY(-13%)',
+  'scale(0.65) translateY(-17%)',
+  'scale(0.65) translateY(-16%)',
+]
+
+const OCTI_BASE_ADJUST: string[] = [
+  'scale(0.65)', // E1
+  'scale(0.72)', // E2
+  'scale(0.80)', // E3
+  'scale(0.90)', // E4
+  'scale(0.95)', // E5
+]
+
+/* =============================================================
    MAIN Flowling COMPONENT
    =========================================================== */
 
@@ -669,7 +725,8 @@ export default function Flowling({
   const isKiro  = species === 'kiro'
   const isMomo  = species === 'momo'
   const isLumi  = species === 'lumi'
-  const isPngSpecies = isBloom || isKiro || isMomo || isLumi
+  const isOcti  = species === 'octi'
+  const isPngSpecies = isBloom || isKiro || isMomo || isLumi || isOcti
 
   /* Generic species state (only used when !isPngSpecies) */
   const s = isPngSpecies ? resolveS(si, 'nova') : resolveS(si, species)  // fallback never shown
@@ -885,6 +942,46 @@ export default function Flowling({
                   si === 2 ? 'rgba(167,139,250,0.12)' :
                   si === 3 ? 'rgba(167,139,250,0.20)' :
                              'rgba(196,181,253,0.28)'
+                } 0%, transparent 70%)`,
+              }} />
+            )}
+          </div>
+
+        ) : isOcti ? (
+          /* ══ OCTI: PNG por etapa + expresión overlay ══ */
+          <div style={{ position: 'relative', width: w, height: h, overflow: 'hidden' }}>
+
+            {emotion === 'celebrating' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={octiPoseCeleb(si)} alt="Octi celebrando" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: OCTI_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : emotion === 'sleeping' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={octiPoseSleep(si)} alt="Octi durmiendo" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: OCTI_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={octiBase(si)} alt="Octi" draggable={false}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: OCTI_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={OCTI_FACE[emotion] ?? OCTI_FACE_DEFAULT} alt="" draggable={false}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', pointerEvents: 'none', userSelect: 'none', transform: (
+                    emotion === 'concentrated' ? OCTI_SORPRENDIDO_ADJUST[si] :
+                    emotion === 'tired'        ? OCTI_CANSADO_ADJUST[si] :
+                    emotion === 'encouraging'  ? OCTI_ALENTADOR_ADJUST[si] :
+                    OCTI_FACE_ADJUST[si]
+                  ) ?? 'none', transformOrigin: 'center center' }} />
+              </>
+            )}
+
+            {si >= 2 && (
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: `radial-gradient(ellipse 60% 50% at 50% 60%, ${
+                  si === 2 ? 'rgba(139,92,246,0.12)' :
+                  si === 3 ? 'rgba(124,58,237,0.20)' :
+                             'rgba(109,40,217,0.28)'
                 } 0%, transparent 70%)`,
               }} />
             )}
