@@ -593,6 +593,62 @@ const MOMO_BASE_ADJUST: string[] = [
 ]
 
 /* =============================================================
+   LUMI — PNG asset system
+   =========================================================== */
+
+const lumiBase      = (si: number) => `/assets/Flowlings/Lumi/Base/Etapa_${si + 1}.png`
+const lumiPoseCeleb = (si: number) => `/assets/Flowlings/Lumi/Poses/Celebrando/Etapa_${si + 1}.png`
+const lumiPoseSleep = (si: number) => `/assets/Flowlings/Lumi/Poses/Durmiendo/Etapa_${si + 1}.png`
+
+const LUMI_FACE: Record<string, string> = {
+  happy:        '/assets/Flowlings/Lumi/Expresiones/Feliz.png',
+  encouraging:  '/assets/Flowlings/Lumi/Expresiones/Alentador.png',
+  tired:        '/assets/Flowlings/Lumi/Expresiones/Cansado.png',
+  concentrated: '/assets/Flowlings/Lumi/Expresiones/Sorprendido.png',
+}
+const LUMI_FACE_DEFAULT = '/assets/Flowlings/Lumi/Expresiones/Feliz.png'
+
+const LUMI_FACE_ADJUST: string[] = [
+  'scale(0.60) translateY(-18%)',                      // E1
+  'scale(0.60) translateY(-22%)',                      // E2
+  'scale(0.57) translateY(-11%) rotate(-6deg)',        // E3: bajar 2 puntos
+  'scale(0.65) translateY(-18%) translateX(-5%) rotate(-6deg)',  // E4: izquierda 1 punto
+  'scale(0.65) translateY(-17%) translateX(-5%) rotate(-6deg)', // E5: bajar 1 punto
+]
+
+const LUMI_CANSADO_ADJUST: string[] = [
+  'scale(0.60) translateY(-17%)',  // E1: +1 tamaño, bajar 2.5
+  'scale(0.60) translateY(-21%)',  // E2: +1 tamaño, bajar 2.5
+  'scale(0.57) translateY(-12%) rotate(-6deg)',                   // E3: inclinar izquierda
+  'scale(0.60) translateY(-17%) translateX(-3%) rotate(-6deg)',   // E4: +1 tamaño, subir medio, izq medio
+  'scale(0.55) translateY(-14%) translateX(-5%) rotate(-6deg)',   // E5: inclinar + subir + izquierda
+]
+
+const LUMI_ALENTADOR_ADJUST: string[] = [
+  'scale(0.60) translateY(-17%)',             // E1: bajar medio punto
+  'scale(0.60) translateY(-21%)',             // E2: bajar medio punto
+  'scale(0.62) translateY(-12%) rotate(-6deg)',          // E3: +1 tamaño
+  'scale(0.65) translateY(-20%) translateX(-3%) rotate(-3deg)', // E4: medio punto izquierda
+  'scale(0.60) translateY(-19%) translateX(-7%)',        // E5: derecha medio punto más
+]
+
+const LUMI_SORPRENDIDO_ADJUST: string[] = [
+  'scale(0.60) translateY(-17%)',                        // E1: +1 tamaño, bajar 2.5
+  'scale(0.60) translateY(-21%)',                        // E2: +1 tamaño, bajar 2.5
+  'scale(0.57) translateY(-12%) rotate(-6deg)',          // E3: +1 tamaño, bajar 5, izq
+  'scale(0.60) translateY(-17%) translateX(-3%) rotate(-6deg)', // E4: +1 tamaño, subir medio, izq medio
+  'scale(0.55) translateY(-14%) translateX(-5%) rotate(-6deg)', // E5: +1 tamaño, bajar 6, izq, izq
+]
+
+const LUMI_BASE_ADJUST: string[] = [
+  'scale(0.65)', // E1
+  'scale(0.72)', // E2
+  'scale(0.80)', // E3
+  'scale(0.90)', // E4
+  'scale(0.95)', // E5
+]
+
+/* =============================================================
    MAIN Flowling COMPONENT
    =========================================================== */
 
@@ -612,7 +668,8 @@ export default function Flowling({
   const isBloom = species === 'bloom'
   const isKiro  = species === 'kiro'
   const isMomo  = species === 'momo'
-  const isPngSpecies = isBloom || isKiro || isMomo
+  const isLumi  = species === 'lumi'
+  const isPngSpecies = isBloom || isKiro || isMomo || isLumi
 
   /* Generic species state (only used when !isPngSpecies) */
   const s = isPngSpecies ? resolveS(si, 'nova') : resolveS(si, species)  // fallback never shown
@@ -788,6 +845,46 @@ export default function Flowling({
                   si === 2 ? 'rgba(251,191,36,0.12)' :
                   si === 3 ? 'rgba(251,191,36,0.20)' :
                              'rgba(252,211,77,0.28)'
+                } 0%, transparent 70%)`,
+              }} />
+            )}
+          </div>
+
+        ) : isLumi ? (
+          /* ══ LUMI: PNG por etapa + expresión overlay ══ */
+          <div style={{ position: 'relative', width: w, height: h, overflow: 'hidden' }}>
+
+            {emotion === 'celebrating' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={lumiPoseCeleb(si)} alt="Lumi celebrando" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: LUMI_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : emotion === 'sleeping' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={lumiPoseSleep(si)} alt="Lumi durmiendo" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: LUMI_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={lumiBase(si)} alt="Lumi" draggable={false}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: LUMI_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={LUMI_FACE[emotion] ?? LUMI_FACE_DEFAULT} alt="" draggable={false}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', pointerEvents: 'none', userSelect: 'none', transform: (
+                    emotion === 'concentrated' ? LUMI_SORPRENDIDO_ADJUST[si] :
+                    emotion === 'tired'        ? LUMI_CANSADO_ADJUST[si] :
+                    emotion === 'encouraging'  ? LUMI_ALENTADOR_ADJUST[si] :
+                    LUMI_FACE_ADJUST[si]
+                  ) ?? 'none', transformOrigin: 'center center' }} />
+              </>
+            )}
+
+            {si >= 2 && (
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: `radial-gradient(ellipse 60% 50% at 50% 60%, ${
+                  si === 2 ? 'rgba(167,139,250,0.12)' :
+                  si === 3 ? 'rgba(167,139,250,0.20)' :
+                             'rgba(196,181,253,0.28)'
                 } 0%, transparent 70%)`,
               }} />
             )}

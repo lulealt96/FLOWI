@@ -16,8 +16,8 @@ const EMOTION_LABELS: Record<FlowlingEmotion, string> = {
   sleeping: 'Durmiendo',
 }
 
-type Species = 'bloom' | 'kiro' | 'momo'
-const SPECIES_LIST: Species[] = ['bloom', 'kiro', 'momo']
+type Species = 'bloom' | 'kiro' | 'momo' | 'lumi'
+const SPECIES_LIST: Species[] = ['bloom', 'kiro', 'momo', 'lumi']
 
 export default function TestFlowlingPage() {
   return (
