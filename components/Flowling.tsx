@@ -661,7 +661,7 @@ const NOVA_FACE: Record<string, string> = {
 const NOVA_FACE_DEFAULT = '/assets/Flowlings/Nova/Expresiones/Feliz.png'
 
 const NOVA_FACE_ADJUST: string[] = [
-  'scale(0.47) translateY(-17.5%)',               // E1 ↓0.5
+  'scale(0.47) translateY(-12.5%)',               // E1 ↓1
   'scale(0.43) translateY(-21%)',
   'scale(0.42) translateY(-22.5%)',
   'scale(0.44) translateY(-21.5%)',
@@ -669,7 +669,7 @@ const NOVA_FACE_ADJUST: string[] = [
 ]
 
 const NOVA_CANSADO_ADJUST: string[] = [
-  'scale(0.71) translateY(-10%)',                 // E1 ↓0.5
+  'scale(0.71) translateY(-5%)',                  // E1 ↓1
   'scale(0.67) translateY(-11%) translateX(2.5%)', // E2 ↓0.5
   'scale(0.61) translateY(-15%)',                 // E3 ↓0.5
   'scale(0.66) translateY(-14%)',                 // E4 ↓0.5
@@ -677,7 +677,7 @@ const NOVA_CANSADO_ADJUST: string[] = [
 ]
 
 const NOVA_ALENTADOR_ADJUST: string[] = [
-  'scale(0.68) translateY(-12.5%)',               // E1 ↓0.5
+  'scale(0.68) translateY(-7.5%)',                // E1 ↓1
   'scale(0.62) translateY(-16%) translateX(5%)',
   'scale(0.58) translateY(-20%)',
   'scale(0.64) translateY(-19%)',
@@ -685,7 +685,7 @@ const NOVA_ALENTADOR_ADJUST: string[] = [
 ]
 
 const NOVA_SORPRENDIDO_ADJUST: string[] = [
-  'scale(0.51) translateY(-20%)',                 // E1 ↓0.5
+  'scale(0.51) translateY(-15%)',                 // E1 ↓1
   'scale(0.50) translateY(-18.5%) translateX(2.5%)', // E2 ↓0.5
   'scale(0.46) translateY(-22.5%)',               // E3 ↓0.5
   'scale(0.51) translateY(-21.5%)',               // E4 ↓0.5
@@ -813,6 +813,56 @@ const EMBER_BASE_ADJUST: string[] = [
 ]
 
 /* =============================================================
+   SAGE — PNG asset system
+   =========================================================== */
+
+const sageBase      = (si: number) => `/assets/Flowlings/Sage/Base/Etapa_${si + 1}.png`
+const sagePoseCeleb = (si: number) => `/assets/Flowlings/Sage/Poses/Celebrando/Etapa_${si + 1}.png`
+const sagePoseSleep = (si: number) => `/assets/Flowlings/Sage/Poses/Durmiendo/Etapa_${si + 1}.png`
+
+const SAGE_FACE: Record<string, string> = {
+  happy:        '/assets/Flowlings/Sage/Expresiones/Feliz.png',
+  encouraging:  '/assets/Flowlings/Sage/Expresiones/Alentador.png',
+  tired:        '/assets/Flowlings/Sage/Expresiones/Cansado.png',
+  concentrated: '/assets/Flowlings/Sage/Expresiones/Sorprendido.png',
+}
+const SAGE_FACE_DEFAULT = '/assets/Flowlings/Sage/Expresiones/Feliz.png'
+
+const SAGE_FACE_ADJUST: string[] = [
+  'scale(0.625) translateY(7.5%)',                    // E1 scale-0.5 ↑0.5
+  'scale(0.625) translateY(-5.5%)',                   // E2 ↓0.5
+  'scale(0.625) translateY(-7.5%)',                   // E3 ↓0.5
+  'scale(0.65) translateY(-12%) translateX(-5%)',     // E4
+  'scale(0.55) translateY(6%) translateX(-22.5%)',    // E5 ↓0.5
+]
+
+const SAGE_ALENTADOR_ADJUST: string[] = [
+  'scale(0.625) translateY(2.5%)',                      // E1
+  'scale(0.675) translateY(-8%)',                       // E2 ↑1
+  'scale(0.625) translateY(-10%) translateX(-2.5%)',    // E3 ←0.5
+  'scale(0.65) translateY(-14.5%) translateX(-7.5%)',   // E4 ↑0.5 ←0.5
+  'scale(0.55) translateY(3.5%) translateX(-25%)',      // E5 ↑0.5 ←0.5
+]
+
+const SAGE_CANSADO_ADJUST: string[] = [
+  'scale(0.525) translateY(2.5%)',                     // E1
+  'scale(0.575) translateY(-8%)',                      // E2
+  'scale(0.575) translateY(-10%) translateX(-2.5%)',   // E3
+  'scale(0.600) translateY(-14.5%) translateX(-7.5%)', // E4
+  'scale(0.450) translateY(3.5%) translateX(-27.5%)',  // E5
+]
+
+const SAGE_SORPRENDIDO_ADJUST: string[] = [
+  'scale(0.450) translateY(5%)',                       // E1
+  'scale(0.500) translateY(-8%)',                      // E2
+  'scale(0.500) translateY(-10%) translateX(-2.5%)',   // E3
+  'scale(0.525) translateY(-14.5%) translateX(-7.5%)', // E4
+  'scale(0.400) translateY(3.5%) translateX(-32.5%)',  // E5
+]
+
+const SAGE_BASE_ADJUST: string[] = ['none', 'none', 'none', 'none', 'none']
+
+/* =============================================================
    MAIN Flowling COMPONENT
    =========================================================== */
 
@@ -836,7 +886,8 @@ export default function Flowling({
   const isOcti  = species === 'octi'
   const isNova  = species === 'nova'
   const isEmber = species === 'ember'
-  const isPngSpecies = isBloom || isKiro || isMomo || isLumi || isOcti || isNova || isEmber
+  const isSage  = species === 'sage'
+  const isPngSpecies = isBloom || isKiro || isMomo || isLumi || isOcti || isNova || isEmber || isSage
 
   /* Generic species state (only used when !isPngSpecies) */
   const s = isPngSpecies ? resolveS(si, 'nova') : resolveS(si, species)  // fallback never shown
@@ -1161,6 +1212,34 @@ export default function Flowling({
                     emotion === 'tired'        ? EMBER_CANSADO_ADJUST[si] :
                     emotion === 'encouraging'  ? EMBER_ALENTADOR_ADJUST[si] :
                     EMBER_FACE_ADJUST[si]
+                  ) ?? 'none', transformOrigin: 'center center' }} />
+              </>
+            )}
+          </div>
+
+        ) : isSage ? (
+          /* ══ SAGE: PNG por etapa + expresión overlay ══ */
+          <div style={{ position: 'relative', width: w, height: h, overflow: 'hidden' }}>
+            {emotion === 'celebrating' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={sagePoseCeleb(si)} alt="Sage celebrando" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: SAGE_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : emotion === 'sleeping' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={sagePoseSleep(si)} alt="Sage durmiendo" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: SAGE_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={sageBase(si)} alt="Sage" draggable={false}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: SAGE_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={SAGE_FACE[emotion] ?? SAGE_FACE_DEFAULT} alt="" draggable={false}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', pointerEvents: 'none', userSelect: 'none', transform: (
+                    emotion === 'concentrated' ? SAGE_SORPRENDIDO_ADJUST[si] :
+                    emotion === 'tired'        ? SAGE_CANSADO_ADJUST[si] :
+                    emotion === 'encouraging'  ? SAGE_ALENTADOR_ADJUST[si] :
+                    SAGE_FACE_ADJUST[si]
                   ) ?? 'none', transformOrigin: 'center center' }} />
               </>
             )}
