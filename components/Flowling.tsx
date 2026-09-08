@@ -439,47 +439,43 @@ const BLOOM_FACE_DEFAULT = '/assets/Flowlings/bloom/Expresiones/Feliz.png'
 // Ajuste fino del overlay de expresión por etapa (si=0…4)
 // translateY(+%) = bajar  |  translateY(-%) = subir  |  scale(X) = agrandar  |  translateX(-%) = izquierda
 const BLOOM_FACE_ADJUST: string[] = [
-  'translateY(15%)',                      // E1 Semilla: bajar + centrar
-  'translateY(8%)',                       // E2 Brote: subir un poco
-  'translateX(-2%) translateY(-5%)',     // E3 Explorador: subir un poco
-  'translateY(-3%)',                     // E4 Maestro: subir un poco
-  'scale(0.85) translateX(-8%) translateY(-7%)', // E5 Guardián: subir y derecha
+  'translateY(15%)',                             // E1
+  'translateY(8%)',                              // E2
+  'translateX(-2%) translateY(-5%)',             // E3
+  'translateY(-3%)',                             // E4
+  'scale(0.70) translateX(-8%) translateY(-5%)', // E5
 ]
 
-// Ajuste específico para Cansado (tired)
 const BLOOM_CANSADO_ADJUST: string[] = [
-  'translateY(10%)',                              // E1: subir un poco
-  'translateY(4%)',                               // E2: subir un poquito
-  'translateX(-5%) translateY(-5%)',              // E3: izquierda un poquito
-  'translateY(-7%)',                              // E4: subir un poquito
-  'scale(0.85) translateX(-8%) translateY(-7%)', // E5: igual que Feliz
+  'translateY(10%)',                             // E1
+  'translateY(4%)',                              // E2
+  'translateX(-5%) translateY(-5%)',             // E3
+  'translateY(-7%)',                             // E4
+  'scale(0.70) translateX(-8%) translateY(-5%)', // E5
 ]
 
-// Ajuste específico para Alentador (encouraging) — escalar un poco más grande
 const BLOOM_ALENTADOR_ADJUST: string[] = [
-  'scale(1.12) translateY(10%)',                 // E1: subir un poco
-  'scale(1.12) translateY(4%)',                  // E2: subir un poco
-  'scale(1.12) translateX(-5%) translateY(-5%)', // E3: izquierda un poco
-  'scale(1.12) translateY(-7%)',                 // E4: subir un poco
-  'scale(0.95) translateX(-8%) translateY(-7%)', // E5: sin cambio
+  'scale(1.12) translateY(10%)',                 // E1
+  'scale(1.12) translateY(4%)',                  // E2
+  'scale(1.12) translateX(-5%) translateY(-5%)', // E3
+  'scale(1.12) translateY(-7%)',                 // E4
+  'scale(0.78) translateX(-8%) translateY(-5%)', // E5
 ]
 
-// Ajuste específico para Sorprendido (concentrated) — hereda los anteriores salvo E3/E4/E5
 const BLOOM_SORPRENDIDO_ADJUST: string[] = [
-  'translateY(15%)',                              // E1: igual
-  'translateY(8%)',                               // E2: igual
-  'translateX(-5%) translateY(-2%)',              // E3: subir un poquito
-  'translateY(-2%)',                              // E4: bajar un poquito
-  'scale(0.85) translateX(-9%) translateY(0%)',  // E5: izquierda suave
+  'translateY(15%)',                             // E1
+  'translateY(8%)',                              // E2
+  'translateX(-5%) translateY(-2%)',             // E3
+  'translateY(-2%)',                             // E4
+  'scale(0.70) translateX(-9%) translateY(2%)', // E5
 ]
 
-// Ajuste del cuerpo base por etapa (scale para cuando el personaje queda pequeño en el canvas)
 const BLOOM_BASE_ADJUST: string[] = [
-  'none',        // E1
-  'none',        // E2
-  'none',        // E3
-  'none',        // E4
-  'scale(1.22)', // E5 Guardián: base más pequeña en canvas → agrandar
+  'none', // E1
+  'none', // E2
+  'none', // E3
+  'none', // E4
+  'none', // E5
 ]
 
 /* =============================================================
@@ -499,41 +495,41 @@ const KIRO_FACE: Record<string, string> = {
 const KIRO_FACE_DEFAULT = '/assets/Flowlings/kiro/Expresiones/Feliz.png'
 
 const KIRO_FACE_ADJUST: string[] = [
-  'scale(0.54) translateY(-10%)',                   // E1
-  'scale(0.55) translateY(-14%)',                   // E2: subir más
-  'scale(0.52) translateY(-16%) translateX(3%)',    // E3: leve izquierda
-  'scale(0.48) translateY(-20%) translateX(8%)',    // E4: subir
-  'scale(0.50) translateY(-25%) translateX(3%)',    // E5: subir + leve derecha
+  'scale(0.75) translateY(-7%)',                   // E1
+  'scale(0.67) translateY(-10.5%)',                // E2
+  'scale(0.58) translateY(-17%) translateX(3%)',   // E3
+  'scale(0.50) translateY(-20.5%) translateX(8%)', // E4
+  'scale(0.50) translateY(-25%) translateX(3%)',   // E5
 ]
 
 const KIRO_CANSADO_ADJUST: string[]   = [
-  'scale(0.60) translateY(-10%) translateX(2%)',   // E1: tris derecha
-  'scale(0.63) translateY(-18%) translateX(4%)',   // E2: derecha
-  'scale(0.63) translateY(-17%) translateX(5%)',   // E3: derecha
-  'scale(0.62) translateY(-21%) translateX(5%)',   // E4: subir
-  'scale(0.66) translateY(-23%) translateX(2%)',   // E5: izquierda
+  'scale(0.83) translateY(-7.5%) translateX(2%)',  // E1
+  'scale(0.77) translateY(-14.5%) translateX(4%)', // E2
+  'scale(0.70) translateY(-18%) translateX(5%)',   // E3
+  'scale(0.65) translateY(-21.5%) translateX(5%)', // E4
+  'scale(0.66) translateY(-23%) translateX(2%)',   // E5
 ]
 const KIRO_ALENTADOR_ADJUST: string[] = [
-  'scale(0.62) translateY(-10%) translateX(4%)',  // E1: derecha
-  'scale(0.60) translateY(-19%) translateX(4%)',  // E2: subir más
-  'scale(0.72) translateY(-11%) translateX(7%)',  // E3: bajar + derecha
-  'scale(0.72) translateY(-17%) translateX(7%)',  // E4: subir tris + derecha
-  'scale(0.70) translateY(-23%) translateX(4%)',  // E5: subir más
+  'scale(0.86) translateY(-7.5%) translateX(4%)',  // E1
+  'scale(0.73) translateY(-15.5%) translateX(4%)', // E2
+  'scale(0.80) translateY(-12%) translateX(7%)',   // E3
+  'scale(0.75) translateY(-17.5%) translateX(7%)', // E4
+  'scale(0.70) translateY(-23%) translateX(4%)',   // E5
 ]
 const KIRO_SORPRENDIDO_ADJUST: string[] = [
-  'scale(0.54) translateY(-12%)',  // E1: reducir
-  'scale(0.57) translateY(-16%)',  // E2: reducir
-  'scale(0.57) translateY(-14%) translateX(3%)',   // E3: derecha
-  'scale(0.56) translateY(-21%)',                  // E4: subir más
-  'scale(0.52) translateY(-24%)',                  // E5: subir más
+  'scale(0.75) translateY(-9.5%)',                 // E1
+  'scale(0.70) translateY(-12.5%)',                // E2
+  'scale(0.63) translateY(-15%) translateX(3%)',   // E3
+  'scale(0.58) translateY(-21.5%)',                // E4
+  'scale(0.52) translateY(-24%)',                  // E5
 ]
 
 const KIRO_BASE_ADJUST: string[] = [
-  'scale(0.72)', // E1: más pequeña para dar sensación de progresión
-  'scale(0.82)', // E2: un poco más grande que E1
-  'scale(0.90)', // E3: más grande
-  'scale(0.96)', // E4: casi tamaño natural
-  'none',        // E5: tamaño natural del canvas
+  'none', // E1
+  'none', // E2
+  'none', // E3
+  'none', // E4
+  'none', // E5
 ]
 
 /* =============================================================
@@ -553,43 +549,43 @@ const MOMO_FACE: Record<string, string> = {
 const MOMO_FACE_DEFAULT = '/assets/Flowlings/Momo/Expresiones/Feliz.png'
 
 const MOMO_FACE_ADJUST: string[] = [
-  'scale(0.60) translateY(-27%)',                                        // E1: recto
-  'scale(0.70) translateY(-29%) translateX(2%) rotate(6deg)',            // E2: derecha
-  'scale(0.65) translateY(-37%) translateX(2%)',                         // E3
-  'scale(0.63) translateY(-34%) translateX(-2%)',                        // E4
-  'scale(0.63) translateY(-25%) translateX(-4%)',                        // E5
+  'scale(0.92) translateY(-22.5%)',                              // E1
+  'scale(1.00) translateY(-24%) translateX(2%) rotate(6deg)',    // E2
+  'scale(0.90) translateY(-32%) translateX(2%)',                 // E3
+  'scale(0.66) translateY(-34.5%) translateX(-2%)',              // E4
+  'scale(0.74) translateY(-26.5%) translateX(-4%)',              // E5
 ]
 
 const MOMO_CANSADO_ADJUST: string[] = [
-  'scale(0.60) translateY(-30%) translateX(3%)',   // E1: derecha
-  'scale(0.65) translateY(-34%)',                  // E2: bajar
-  'scale(0.63) translateY(-36%)',                  // E3
-  'scale(0.61) translateY(-37%)',                  // E4: bajar
-  'scale(0.61) translateY(-29%)',                  // E5: bajar
+  'scale(0.92) translateY(-25.5%) translateX(3%)',  // E1
+  'scale(0.93) translateY(-29%)',                   // E2
+  'scale(0.88) translateY(-31%)',                   // E3
+  'scale(0.64) translateY(-37.5%)',                 // E4
+  'scale(0.72) translateY(-30.5%)',                 // E5
 ]
 
 const MOMO_ALENTADOR_ADJUST: string[] = [
-  'scale(0.55) translateY(-30%)',                       // E1: reducir
-  'scale(0.60) translateY(-34%) rotate(6deg)',          // E2: inclinar derecha
-  'scale(0.63) translateY(-39%) translateX(-3%) rotate(4deg)', // E3: izquierda
-  'scale(0.61) translateY(-37%) translateX(-3%) rotate(4deg)', // E4: bajar + inclinar
-  'scale(0.56) translateY(-26%) translateX(-7%) rotate(4deg)', // E5: izquierda + inclinar derecha
+  'scale(0.85) translateY(-25.5%)',                              // E1
+  'scale(0.86) translateY(-29%) rotate(6deg)',                   // E2
+  'scale(0.88) translateY(-34%) translateX(-3%) rotate(4deg)',   // E3
+  'scale(0.64) translateY(-37.5%) translateX(-3%) rotate(4deg)', // E4
+  'scale(0.66) translateY(-27.5%) translateX(-7%) rotate(4deg)', // E5
 ]
 
 const MOMO_SORPRENDIDO_ADJUST: string[] = [
-  'scale(0.50) translateY(-30%)',  // E1: reducir
-  'scale(0.50) translateY(-46%)',  // E2: subir
-  'scale(0.52) translateY(-42%)',  // E3
-  'scale(0.50) translateY(-43%)',  // E4
-  'scale(0.50) translateY(-32%) translateX(-3%) rotate(4deg)',  // E5: inclinar derecha
+  'scale(0.77) translateY(-25.5%)',                              // E1
+  'scale(0.71) translateY(-41%)',                                // E2
+  'scale(0.72) translateY(-39.5%)',                              // E3 sin cambio
+  'scale(0.53) translateY(-43.5%)',                              // E4
+  'scale(0.59) translateY(-33.5%) translateX(-3%) rotate(4deg)', // E5
 ]
 
 const MOMO_BASE_ADJUST: string[] = [
-  'scale(0.65)', // E1
-  'scale(0.70)', // E2
-  'scale(0.72)', // E3
-  'scale(0.95)', // E4
-  'scale(0.85)', // E5
+  'none', // E1
+  'none', // E2
+  'none', // E3
+  'none', // E4
+  'none', // E5
 ]
 
 /* =============================================================
@@ -609,43 +605,43 @@ const LUMI_FACE: Record<string, string> = {
 const LUMI_FACE_DEFAULT = '/assets/Flowlings/Lumi/Expresiones/Feliz.png'
 
 const LUMI_FACE_ADJUST: string[] = [
-  'scale(0.60) translateY(-18%)',                      // E1
-  'scale(0.60) translateY(-22%)',                      // E2
-  'scale(0.57) translateY(-11%) rotate(-6deg)',        // E3: bajar 2 puntos
-  'scale(0.65) translateY(-18%) translateX(-5%) rotate(-6deg)',  // E4: izquierda 1 punto
-  'scale(0.65) translateY(-17%) translateX(-5%) rotate(-6deg)', // E5: bajar 1 punto
+  'scale(0.92) translateY(-13.5%)',                              // E1
+  'scale(0.83) translateY(-17%)',                                // E2
+  'scale(0.71) translateY(-5.5%) rotate(-6deg)',                 // E3
+  'scale(0.72) translateY(-19%) translateX(-5%) rotate(-6deg)',  // E4
+  'scale(0.68) translateY(-17.5%) translateX(-5%) rotate(-6deg)', // E5
 ]
 
 const LUMI_CANSADO_ADJUST: string[] = [
-  'scale(0.60) translateY(-17%)',  // E1: +1 tamaño, bajar 2.5
-  'scale(0.60) translateY(-21%)',  // E2: +1 tamaño, bajar 2.5
-  'scale(0.57) translateY(-12%) rotate(-6deg)',                   // E3: inclinar izquierda
-  'scale(0.60) translateY(-17%) translateX(-3%) rotate(-6deg)',   // E4: +1 tamaño, subir medio, izq medio
-  'scale(0.55) translateY(-14%) translateX(-5%) rotate(-6deg)',   // E5: inclinar + subir + izquierda
+  'scale(0.92) translateY(-12.5%)',                              // E1
+  'scale(0.83) translateY(-16%)',                                // E2
+  'scale(0.71) translateY(-6.5%) rotate(-6deg)',                 // E3
+  'scale(0.67) translateY(-18%) translateX(-3%) rotate(-6deg)',  // E4
+  'scale(0.58) translateY(-14.5%) translateX(-5%) rotate(-6deg)', // E5
 ]
 
 const LUMI_ALENTADOR_ADJUST: string[] = [
-  'scale(0.60) translateY(-17%)',             // E1: bajar medio punto
-  'scale(0.60) translateY(-21%)',             // E2: bajar medio punto
-  'scale(0.62) translateY(-12%) rotate(-6deg)',          // E3: +1 tamaño
-  'scale(0.65) translateY(-20%) translateX(-3%) rotate(-3deg)', // E4: medio punto izquierda
-  'scale(0.60) translateY(-19%) translateX(-7%)',        // E5: derecha medio punto más
+  'scale(0.92) translateY(-12.5%)',                              // E1
+  'scale(0.83) translateY(-16%)',                                // E2
+  'scale(0.78) translateY(-6.5%) rotate(-6deg)',                 // E3
+  'scale(0.72) translateY(-21%) translateX(-3%) rotate(-3deg)',  // E4
+  'scale(0.63) translateY(-19.5%) translateX(-7%)',              // E5
 ]
 
 const LUMI_SORPRENDIDO_ADJUST: string[] = [
-  'scale(0.60) translateY(-17%)',                        // E1: +1 tamaño, bajar 2.5
-  'scale(0.60) translateY(-21%)',                        // E2: +1 tamaño, bajar 2.5
-  'scale(0.57) translateY(-12%) rotate(-6deg)',          // E3: +1 tamaño, bajar 5, izq
-  'scale(0.60) translateY(-17%) translateX(-3%) rotate(-6deg)', // E4: +1 tamaño, subir medio, izq medio
-  'scale(0.55) translateY(-14%) translateX(-5%) rotate(-6deg)', // E5: +1 tamaño, bajar 6, izq, izq
+  'scale(0.92) translateY(-12.5%)',                              // E1
+  'scale(0.83) translateY(-16%)',                                // E2
+  'scale(0.71) translateY(-6.5%) rotate(-6deg)',                 // E3
+  'scale(0.67) translateY(-18%) translateX(-3%) rotate(-6deg)',  // E4
+  'scale(0.58) translateY(-14.5%) translateX(-5%) rotate(-6deg)', // E5
 ]
 
 const LUMI_BASE_ADJUST: string[] = [
-  'scale(0.65)', // E1
-  'scale(0.72)', // E2
-  'scale(0.80)', // E3
-  'scale(0.90)', // E4
-  'scale(0.95)', // E5
+  'none', // E1
+  'none', // E2
+  'none', // E3
+  'none', // E4
+  'none', // E5
 ]
 
 /* =============================================================
@@ -665,43 +661,43 @@ const NOVA_FACE: Record<string, string> = {
 const NOVA_FACE_DEFAULT = '/assets/Flowlings/Nova/Expresiones/Feliz.png'
 
 const NOVA_FACE_ADJUST: string[] = [
-  'scale(0.35) translateY(-23%)',
-  'scale(0.35) translateY(-24.5%)',
-  'scale(0.375) translateY(-21.5%)',
-  'scale(0.40) translateY(-20.5%)',
-  'scale(0.40) translateY(-19.5%) translateX(-35%)',
+  'scale(0.47) translateY(-20%)',
+  'scale(0.43) translateY(-21%)',
+  'scale(0.42) translateY(-22.5%)',
+  'scale(0.44) translateY(-21.5%)',
+  'scale(0.42) translateY(-20%) translateX(-35%)',
 ]
 
 const NOVA_CANSADO_ADJUST: string[] = [
-  'scale(0.535) translateY(-15.5%)',
-  'scale(0.548) translateY(-17%) translateX(2.5%)',
-  'scale(0.548) translateY(-16.5%)',
-  'scale(0.598) translateY(-15.5%)',
-  'scale(0.598) translateY(-14.5%) translateX(-22.5%)',
+  'scale(0.71) translateY(-12.5%)',
+  'scale(0.67) translateY(-13.5%) translateX(2.5%)',
+  'scale(0.61) translateY(-17.5%)',
+  'scale(0.66) translateY(-16.5%)',
+  'scale(0.63) translateY(-15%) translateX(-22.5%)',
 ]
 
 const NOVA_ALENTADOR_ADJUST: string[] = [
-  'scale(0.51) translateY(-18%)',
-  'scale(0.51) translateY(-19.5%) translateX(5%)',
-  'scale(0.525) translateY(-19%)',
-  'scale(0.575) translateY(-18%)',
-  'scale(0.55) translateY(-17%) translateX(-25.5%)',
+  'scale(0.68) translateY(-15%)',
+  'scale(0.62) translateY(-16%) translateX(5%)',
+  'scale(0.58) translateY(-20%)',
+  'scale(0.64) translateY(-19%)',
+  'scale(0.58) translateY(-17.5%) translateX(-25.5%)',
 ]
 
 const NOVA_SORPRENDIDO_ADJUST: string[] = [
-  'scale(0.385) translateY(-25.5%)',
-  'scale(0.41) translateY(-24.5%) translateX(2.5%)',
-  'scale(0.41) translateY(-24%)',
-  'scale(0.46) translateY(-23%)',
-  'scale(0.46) translateY(-22%) translateX(-30%)',
+  'scale(0.51) translateY(-22.5%)',
+  'scale(0.50) translateY(-21%) translateX(2.5%)',
+  'scale(0.46) translateY(-25%)',
+  'scale(0.51) translateY(-24%)',
+  'scale(0.48) translateY(-22.5%) translateX(-30%)',
 ]
 
 const NOVA_BASE_ADJUST: string[] = [
-  'scale(0.75)', // E1
-  'scale(0.82)', // E2
-  'scale(0.90)', // E3
-  'scale(0.90)', // E4
-  'scale(0.95)', // E5
+  'none', // E1
+  'none', // E2
+  'none', // E3
+  'none', // E4
+  'none', // E5
 ]
 
 /* =============================================================
@@ -721,43 +717,99 @@ const OCTI_FACE: Record<string, string> = {
 const OCTI_FACE_DEFAULT = '/assets/Flowlings/Octi/Expresiones/Feliz.png'
 
 const OCTI_FACE_ADJUST: string[] = [
-  'scale(0.525) translateY(-18%)',
-  'scale(0.55) translateY(-17%)',
-  'scale(0.60) translateY(-14%)',
-  'scale(0.65) translateY(-11%) translateX(3%)',
-  'scale(0.65) translateY(-10%) translateX(-3%)',
+  'scale(0.81) translateY(-11%)',
+  'scale(0.76) translateY(-14.5%)',
+  'scale(0.75) translateY(-15.5%)',
+  'scale(0.72) translateY(-12%) translateX(3%)',
+  'scale(0.68) translateY(-10.5%) translateX(-3%)',
 ]
 
 const OCTI_CANSADO_ADJUST: string[] = [
-  'scale(0.525) translateY(-17%)',
-  'scale(0.55) translateY(-16%)',
-  'scale(0.60) translateY(-13%)',
-  'scale(0.65) translateY(-10%) translateX(3%)',
-  'scale(0.65) translateY(-9%) translateX(-3%)',
+  'scale(0.81) translateY(-10%)',
+  'scale(0.76) translateY(-13.5%)',
+  'scale(0.75) translateY(-14.5%)',
+  'scale(0.72) translateY(-11%) translateX(3%)',
+  'scale(0.68) translateY(-9.5%) translateX(-3%)',
 ]
 
 const OCTI_ALENTADOR_ADJUST: string[] = [
-  'scale(0.525) translateY(-17%)',
-  'scale(0.55) translateY(-16%)',
-  'scale(0.60) translateY(-13%)',
-  'scale(0.65) translateY(-10%) translateX(3%)',
-  'scale(0.65) translateY(-9%) translateX(-3%)',
+  'scale(0.81) translateY(-10%)',
+  'scale(0.76) translateY(-13.5%)',
+  'scale(0.75) translateY(-14.5%)',
+  'scale(0.72) translateY(-11%) translateX(3%)',
+  'scale(0.68) translateY(-9.5%) translateX(-3%)',
 ]
 
 const OCTI_SORPRENDIDO_ADJUST: string[] = [
-  'scale(0.525) translateY(-17%)',
-  'scale(0.55) translateY(-16%)',
-  'scale(0.60) translateY(-13%)',
-  'scale(0.65) translateY(-10%) translateX(3%)',
-  'scale(0.65) translateY(-9%) translateX(-3%)',
+  'scale(0.81) translateY(-10%)',
+  'scale(0.76) translateY(-8.5%)',
+  'scale(0.75) translateY(-14.5%)',
+  'scale(0.72) translateY(-11%) translateX(3%)',
+  'scale(0.68) translateY(-9.5%) translateX(-3%)',
 ]
 
 const OCTI_BASE_ADJUST: string[] = [
-  'scale(0.65)', // E1
-  'scale(0.72)', // E2
-  'scale(0.80)', // E3
-  'scale(0.90)', // E4
-  'scale(0.95)', // E5
+  'none', // E1
+  'none', // E2
+  'none', // E3
+  'none', // E4
+  'none', // E5
+]
+
+/* =============================================================
+   EMBER — PNG asset system
+   =========================================================== */
+
+const emberBase      = (si: number) => `/assets/Flowlings/Ember/Base/Etapa_${si + 1}.png`
+const emberPoseCeleb = (si: number) => `/assets/Flowlings/Ember/Poses/Celebracion/Etapa_${si + 1}.png`
+const emberPoseSleep = (si: number) => `/assets/Flowlings/Ember/Poses/Durmiendo/Etapa_${si + 1}.png`
+
+const EMBER_FACE: Record<string, string> = {
+  happy:        '/assets/Flowlings/Ember/Expresiones/Feliz.png',
+  encouraging:  '/assets/Flowlings/Ember/Expresiones/Alentador.png',
+  tired:        '/assets/Flowlings/Ember/Expresiones/Cansado.png',
+  concentrated: '/assets/Flowlings/Ember/Expresiones/Sorprendido.png',
+}
+const EMBER_FACE_DEFAULT = '/assets/Flowlings/Ember/Expresiones/Feliz.png'
+
+const EMBER_FACE_ADJUST: string[] = [
+  'scale(0.65) translateY(6%)',
+  'scale(0.625) translateY(0%)',
+  'scale(0.625) translateY(-1.5%) translateX(5%)',
+  'scale(0.61) translateY(-2.5%) translateX(-5%)',
+  'scale(0.59) translateY(1%) translateX(-15%)',
+]
+
+const EMBER_ALENTADOR_ADJUST: string[] = [
+  'scale(0.65) translateY(6%)',
+  'scale(0.625) translateY(0%)',
+  'scale(0.625) translateY(-4%) translateX(5%)',
+  'scale(0.61) translateY(-2.5%) translateX(-5%)',
+  'scale(0.59) translateY(1%) translateX(-15%)',
+]
+
+const EMBER_CANSADO_ADJUST: string[] = [
+  'scale(0.65) translateY(6%)',
+  'scale(0.625) translateY(2.5%)',
+  'scale(0.625) translateY(-4%) translateX(5%)',
+  'scale(0.61) translateY(-5%) translateX(-5%)',
+  'scale(0.59) translateY(1%) translateX(-15%)',
+]
+
+const EMBER_SORPRENDIDO_ADJUST: string[] = [
+  'scale(0.65) translateY(6%)',
+  'scale(0.625) translateY(2.5%)',
+  'scale(0.625) translateY(-4%) translateX(2.5%)',
+  'scale(0.61) translateY(-5%) translateX(-5%)',
+  'scale(0.59) translateY(1%) translateX(-15%)',
+]
+
+const EMBER_BASE_ADJUST: string[] = [
+  'scale(1.10)', // E1
+  'scale(1.10)', // E2
+  'none',        // E3
+  'none',        // E4
+  'none',        // E5
 ]
 
 /* =============================================================
@@ -783,7 +835,8 @@ export default function Flowling({
   const isLumi  = species === 'lumi'
   const isOcti  = species === 'octi'
   const isNova  = species === 'nova'
-  const isPngSpecies = isBloom || isKiro || isMomo || isLumi || isOcti || isNova
+  const isEmber = species === 'ember'
+  const isPngSpecies = isBloom || isKiro || isMomo || isLumi || isOcti || isNova || isEmber
 
   /* Generic species state (only used when !isPngSpecies) */
   const s = isPngSpecies ? resolveS(si, 'nova') : resolveS(si, species)  // fallback never shown
@@ -1081,6 +1134,35 @@ export default function Flowling({
                              'rgba(109,40,217,0.28)'
                 } 0%, transparent 70%)`,
               }} />
+            )}
+          </div>
+
+        ) : isEmber ? (
+          /* ══ EMBER: PNG por etapa + expresión overlay ══ */
+          <div style={{ position: 'relative', width: w, height: h, overflow: 'hidden' }}>
+
+            {emotion === 'celebrating' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={emberPoseCeleb(si)} alt="Ember celebrando" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: EMBER_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : emotion === 'sleeping' ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={emberPoseSleep(si)} alt="Ember durmiendo" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: EMBER_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+            ) : (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={emberBase(si)} alt="Ember" draggable={false}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', display: 'block', userSelect: 'none', transform: EMBER_BASE_ADJUST[si] ?? 'none', transformOrigin: 'center 30%' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={EMBER_FACE[emotion] ?? EMBER_FACE_DEFAULT} alt="" draggable={false}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', pointerEvents: 'none', userSelect: 'none', transform: (
+                    emotion === 'concentrated' ? EMBER_SORPRENDIDO_ADJUST[si] :
+                    emotion === 'tired'        ? EMBER_CANSADO_ADJUST[si] :
+                    emotion === 'encouraging'  ? EMBER_ALENTADOR_ADJUST[si] :
+                    EMBER_FACE_ADJUST[si]
+                  ) ?? 'none', transformOrigin: 'center center' }} />
+              </>
             )}
           </div>
 
