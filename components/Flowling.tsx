@@ -482,17 +482,17 @@ const BLOOM_BASE_ADJUST: string[] = [
    KIRO — PNG asset system
    =========================================================== */
 
-const kiroBase      = (si: number) => `/assets/Flowlings/kiro/Base/Etapa_${si + 1}.png`
-const kiroPoseCeleb = (si: number) => `/assets/Flowlings/kiro/Poses/Celebrando/Etapa_${si + 1}.png`
-const kiroPoseSleep = (si: number) => `/assets/Flowlings/kiro/Poses/Durmiendo/Etapa_${si + 1}.png`
+const kiroBase      = (si: number) => `/assets/Flowlings/Kiro/Base/Etapa_${si + 1}.png`
+const kiroPoseCeleb = (si: number) => `/assets/Flowlings/Kiro/Poses/Celebrando/Etapa_${si + 1}.png`
+const kiroPoseSleep = (si: number) => `/assets/Flowlings/Kiro/Poses/Durmiendo/Etapa_${si + 1}.png`
 
 const KIRO_FACE: Record<string, string> = {
-  happy:        '/assets/Flowlings/kiro/Expresiones/Feliz.png',
-  encouraging:  '/assets/Flowlings/kiro/Expresiones/Alentador.png',
-  tired:        '/assets/Flowlings/kiro/Expresiones/Cansado.png',
-  concentrated: '/assets/Flowlings/kiro/Expresiones/Sorprendido.png',
+  happy:        '/assets/Flowlings/Kiro/Expresiones/Feliz.png',
+  encouraging:  '/assets/Flowlings/Kiro/Expresiones/Alentador.png',
+  tired:        '/assets/Flowlings/Kiro/Expresiones/Cansado.png',
+  concentrated: '/assets/Flowlings/Kiro/Expresiones/Sorprendido.png',
 }
-const KIRO_FACE_DEFAULT = '/assets/Flowlings/kiro/Expresiones/Feliz.png'
+const KIRO_FACE_DEFAULT = '/assets/Flowlings/Kiro/Expresiones/Feliz.png'
 
 const KIRO_FACE_ADJUST: string[] = [
   'scale(0.75) translateY(-2%)',                   // E1 ↓1
