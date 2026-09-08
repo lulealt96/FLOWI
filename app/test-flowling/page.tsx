@@ -1,5 +1,6 @@
 'use client'
 
+import { notFound } from 'next/navigation'
 import Flowling, { type FlowlingEmotion } from '@/components/Flowling'
 
 const STAGES = [0, 1, 2, 3, 4]
@@ -20,6 +21,7 @@ type Species = 'bloom' | 'kiro' | 'momo' | 'lumi' | 'octi' | 'nova' | 'ember' | 
 const SPECIES_LIST: Species[] = ['bloom', 'kiro', 'momo', 'lumi', 'octi', 'nova', 'ember', 'sage']
 
 export default function TestFlowlingPage() {
+  if (process.env.NODE_ENV === 'production') notFound()
   return (
     <div style={{ minHeight: '100dvh', background: '#f5f5f4', paddingBottom: '4rem' }}>
 
